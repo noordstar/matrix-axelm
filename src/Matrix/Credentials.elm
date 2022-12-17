@@ -1,4 +1,4 @@
-module Matrix.Credentials exposing (fromAccessToken)
+module Matrix.Credentials exposing (fromAccessToken, withUsernameAndPassword)
 
 {-|
 
@@ -25,7 +25,7 @@ creating Credentials using certain values.
 
 The Credentials will take care of when to log in!
 
-@docs fromAccessToken
+@docs fromAccessToken, withUsernameAndPassword
 
 -}
 
@@ -33,7 +33,7 @@ import Internal.Credentials as Internal
 import Matrix exposing (Credentials)
 
 
-{-| Create new Credentials using an access token.
+{-| Create new [Credentials](Matrix#Credentials) using an access token.
 
 This function is mostly useful for bots and small scripts. You can use
 this function to connect to a homeserver without needing to log in,
@@ -50,3 +50,15 @@ but the Credentials will no longer work if the access token ever expires.
 fromAccessToken : { baseUrl : String, token : String } -> Credentials
 fromAccessToken data =
     Internal.fromAccessToken data.baseUrl data.token
+
+
+{-| Create new [Credentials](Matrix#Credentials) using a username and a password.
+
+This function is mostly useful for clients that aim to be logged in automatically.
+Using a password, the credentials can automatically log back in after old tokens
+expire or lose their validity.
+
+-}
+withUsernameAndPassword : { baseUrl : String, username : String, password : String } -> Credentials
+withUsernameAndPassword data =
+    Internal.withUsernameAndPassword data.baseUrl data.username data.password

@@ -1,6 +1,6 @@
 module Matrix exposing
     ( Credentials
-    , Updater, syncCredentials
+    , Updater, Response, syncCredentials
     )
 
 {-| The Matrix module takes care of all high-level communication.
@@ -16,7 +16,7 @@ module Matrix exposing
 Every now and then, the Matrix homeserver sends new information that you need to remember.
 Don't worry, the `Credentials` have got you covered. You will need to update your credentials, though.
 
-@docs Updater, syncCredentials
+@docs Updater, Response, syncCredentials
 
 -}
 
@@ -55,12 +55,20 @@ type alias Updater msg =
     (Credentials -> Credentials) -> msg
 
 
+{-| Not all functions may return a successful response in all cases.
+If the Matrix response has a chance to fail, it will use a `Response msg` tag,
+which either returns the `Updater` type or returns a `String` containing the error description.
+-}
+type alias Response msg =
+    Result String (Credentials -> Credentials) -> msg
+
+
 {-| Get the latest changes from the Matrix homeserver.
 
 The Matrix API has a `/sync` endpoint that basically says _"give me an update on EVERYTHING"_.
 This command will reach that endpoint and make sure all the latest data has been retrieved.
 
 -}
-syncCredentials : Updater msg -> Credentials -> Cmd msg
+syncCredentials : Response msg -> Credentials -> Cmd msg
 syncCredentials =
     Internal.Credentials.sync
