@@ -16,6 +16,7 @@ the `elm/json` library though, so you can always try and decode them yourself!
 -}
 
 import Internal.Tools.DecodeExtra exposing (opField)
+import Internal.Values.Objects as O
 import Internal.Values.SpecEnums as Enums
 import Internal.Values.SpecObjects as Objects
 import Json.Decode as D
@@ -39,15 +40,24 @@ decodeWith decoder value =
 
 
 type RoomAvatar
-    = RoomAvatar { info : Maybe Objects.ImageInfo, url : Maybe String }
+    = RoomAvatar Maybe O.Image
 
 
 roomAvatarDecoder : D.Decoder RoomAvatar
 roomAvatarDecoder =
-    D.map2
-        (\a b -> { info = a, url = b })
-        (opField "info" Object.imageInfoDecoder)
-        (opField "url" D.string)
+    opField "url" D.string
+    |> D.andThen
+        (\v -> 
+            case v of
+                Just _ ->
+                    D.map Just O.imageDecoder
+                Nothing ->
+                    D.succeed Nothing
+        )
+
+getRoomAvatarImage : RoomAvatar -> Maybe O.Image
+getRoomAvatarImage (RoomAvatar img) =
+    img
 
 
 

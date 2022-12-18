@@ -269,8 +269,6 @@ module Internal.Values.SpecObjects exposing
     , notificationDecoder
     , notificationsDecoder
     , offerDecoder
-    , opField
-    , opFieldWithDefault
     , openIdCredentialsDecoder
     , paginationChunkDecoder
     , presenceDecoder
