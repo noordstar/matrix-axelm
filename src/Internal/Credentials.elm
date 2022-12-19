@@ -16,8 +16,7 @@ type alias Updater msg =
 
 {-| Updater type that either has an error string or can update credentials.
 -}
-type alias Response msg =
-    Result String (Credentials -> Credentials) -> msg
+type alias Response = Result String (Credentials -> Credentials)
 
 
 {-| Structure of the data stored in Credentials.
@@ -72,10 +71,15 @@ withUsernameAndPassword baseUrl username password =
 
 {-| Get the latest /sync endpoint
 -}
-sync : Response msg -> Credentials -> Cmd msg
-sync _ _ =
+sync : (Response -> msg) -> Credentials -> Cmd msg
+sync _ (Credentials _) =
     Cmd.none
-
-
-
 -- TODO: Not implemented yet
+
+-- {-| Get a list of rooms the user has joined.
+-- -}
+-- joinedRooms : Credentials -> List O.Room
+-- joinedRooms (Credentials c) =
+--     []
+
+

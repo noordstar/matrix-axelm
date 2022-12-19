@@ -34,6 +34,20 @@ decodeWith decoder value =
             D.errorToString e
                 |> Err
 
+{- PINNED EVENTS -}
+
+type PinnedEvents = PinnedEvents List String
+
+pinnedEventsDecoder : D.Decoder PinnedEvents
+pinnedEventsDecoder =
+    D.string
+    |> D.list
+    |> D.field "pinned"
+    |> D.map PinnedEvents
+
+getPinnedEvents : PinnedEvents -> List String
+getPinnedEvents (PinnedEvents p) =
+    p
 
 
 {- ROOM AVATAR -}
@@ -59,6 +73,19 @@ getRoomAvatarImage : RoomAvatar -> Maybe O.Image
 getRoomAvatarImage (RoomAvatar img) =
     img
 
+
+{- ROOM MESSAGE TEXT -}
+
+type RoomMessageText = RoomMessageText { body : String
+                                       , formattedBody : String
+                                       , textFormat : String 
+                                       }
+
+roomMessageTextDecoder : D.Decoder RoomMessageText
+roomMessageTextDecoder =
+    D.map3
+        (\a b c -> RoomMessageText { body = a, formattedBody = b, textFormat = c })
+        
 
 
 {- ROOM NAME -}
