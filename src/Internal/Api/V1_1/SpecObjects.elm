@@ -1,7 +1,7 @@
 module Internal.Api.V1_1.SpecObjects exposing (AccountData, Ephemeral, Event, EventContent, InviteState, InvitedRoom, JoinedRoom, KnockState, KnockedRoom, LeftRoom, Presence, RoomSummary, Rooms, State, StrippedState, Sync, SyncRoomEvent, SyncStateEvent, Timeline, UnreadNotificationCounts, UnsignedData, accountDataDecoder, encodeAccountData, encodeEphemeral, encodeEvent, encodeEventContent, encodeInviteState, encodeInvitedRoom, encodeJoinedRoom, encodeKnockState, encodeKnockedRoom, encodeLeftRoom, encodePresence, encodeRoomSummary, encodeRooms, encodeState, encodeStrippedState, encodeSync, encodeSyncRoomEvent, encodeSyncStateEvent, encodeTimeline, encodeUnreadNotificationCounts, encodeUnsignedData, ephemeralDecoder, eventContentDecoder, eventDecoder, inviteStateDecoder, invitedRoomDecoder, joinedRoomDecoder, knockStateDecoder, knockedRoomDecoder, leftRoomDecoder, presenceDecoder, roomSummaryDecoder, roomsDecoder, stateDecoder, strippedStateDecoder, syncDecoder, syncRoomEventDecoder, syncStateEventDecoder, timelineDecoder, unreadNotificationCountsDecoder, unsignedDataDecoder)
 
 import Dict exposing (Dict)
-import Internal.Values.SpecEnums as Enums
+-- import Internal.Values.SpecEnums as Enums
 import Json.Decode as D
 import Json.Encode as E
 import Time
@@ -395,7 +395,7 @@ strippedStateDecoder =
 {-| The sync response the homeserver sends to the user.
 -}
 type alias Sync =
-    { accountData : AccountData
+    { accountData : Maybe AccountData
     , nextBatch : String
     , presence : Maybe Presence
     , rooms : Maybe Rooms
@@ -405,7 +405,7 @@ type alias Sync =
 encodeSync : Sync -> E.Value
 encodeSync data =
     maybeObject
-        [ ( "account_data", Just <| encodeAccountData data.accountData )
+        [ ( "account_data", Maybe.map encodeAccountData data.accountData )
         , ( "next_batch", Just <| E.string data.nextBatch )
         , ( "presence", Maybe.map encodePresence data.presence )
         , ( "rooms", Maybe.map encodeRooms data.rooms )
@@ -418,7 +418,7 @@ syncDecoder =
         (\a b c d ->
             { accountData = a, nextBatch = b, presence = c, rooms = d }
         )
-        (opFieldWithDefault "account_data" accountDataDecoder)
+        (opField "account_data" accountDataDecoder)
         (D.field "next_batch" D.string)
         (opField "presence" presenceDecoder)
         (opField "rooms" roomsDecoder)

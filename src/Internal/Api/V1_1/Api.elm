@@ -2,7 +2,6 @@ module Internal.Api.V1_1.Api exposing (..)
 
 import Internal.Api.Request as R
 import Internal.Api.VersionControl exposing (..)
-import Internal.Api.V1_1.Objects as O
 import Internal.Api.V1_1.SpecObjects as SO
 import Internal.Values.Exceptions as X
 import Internal.Values.SpecEnums as Enums
