@@ -17,6 +17,7 @@ The function also returns Nothing if the field exists but it is null.
 opField : String -> D.Decoder a -> D.Decoder (Maybe a)
 opField fieldName decoder =
     D.value
+        |> D.maybe
         |> D.andThen
             (\v ->
                 case v of
