@@ -1,33 +1,33 @@
 module Internal.Api.V1_1.Api exposing (..)
 
+import Dict
 import Internal.Api.Request as R
-import Internal.Api.VersionControl exposing (..)
+import Internal.Api.V1_1.Objects as O
 import Internal.Api.V1_1.SpecObjects as SO
+import Internal.Api.VersionControl exposing (..)
 import Internal.Values.Exceptions as X
 import Internal.Values.SpecEnums as Enums
-import Json.Decode as D
 import Task exposing (Task)
-import Dict
 
-packet : VersionPacket () Sync
+
+packet : VersionPacket () O.Sync
 packet =
     { sync = sync
-    , upcastSync = 
-        (\_ -> 
-            { accountData = { events = [] }
+    , upcastSync =
+        \_ ->
+            { accountData = []
             , nextBatch = ""
-            , presence = { events = [] }
-            , rooms =
+            , presence = []
+            , rooms = Just
                 { invite = Dict.empty
                 , join = Dict.empty
                 , knock = Dict.empty
                 , leave = Dict.empty
                 }
             }
-        ) 
     }
 
-sync : SyncInput -> Task X.Error Sync
+sync : SyncInput -> Task X.Error O.Sync
 sync data =
     R.rawApiCall
         { headers = R.WithAccessToken data.accessToken
@@ -43,25 +43,71 @@ sync data =
             , R.OpQueryParamInt "timeout" data.timeout
             ]
         , bodyParams = []
-        , timeout = 
+        , timeout =
             data.timeout
-            |> Maybe.map (\t -> t + 10000)
-            |> Maybe.map toFloat
-        , decoder = (\_ -> syncDecoder)
+                |> Maybe.map (\t -> t + 10000)
+                |> Maybe.map toFloat
+        , decoder = \_ -> D.map convertSync SO.syncDecoder
         }
 
-type alias Sync =
-    { accountData : SO.AccountData
-    , nextBatch   : String
-    , presence : SO.Presence
-    , rooms : SO.Rooms
+convertSync : SO.Sync -> O.Sync
+convertSync oldSync =
+    { accountData = 
+        oldSync.accountData
+        |> Maybe.map .events
+        |> Maybe.withDefault []
+    , nextBatch = oldSync.nextBatch
+    , presence =
+        oldSync.presence
+        |> Maybe.map .events
+        |> Maybe.withDefault []
+    , rooms = convertRooms oldSync.rooms
     }
 
-syncDecoder : D.Decoder Sync
-syncDecoder =
-    D.map4
-        (\a b c d -> { accountData = a, nextBatch = b, presence = c, rooms = d })
-        (D.field "account_data" SO.accountDataDecoder)
-        (D.field "next_batch" D.string)
-        (D.field "presence" SO.presenceDecoder)
-        (D.field "rooms" SO.roomsDecoder)
+convertRooms : SO.Rooms -> O.Rooms
+convertRooms oldRooms =
+    { invite =
+        oldRooms.invite
+        |> Dict.map
+            (\_ state -> 
+                state.inviteState
+                |> Maybe.map .events
+                |> Maybe.withDefault []
+            )
+    , join = convertJoinedRoom oldRooms.join
+    , knock =
+        oldRooms.knock
+        |> Dict.map
+            (\_ state ->
+                state.knockState
+                |> Maybe.map .events
+                |> Maybe.withDefault []
+            )
+    , leave = convertLeftRoom oldRooms.leave
+    }
+
+convertJoinedRoom : SO.JoinedRoom -> O.JoinedRoom
+convertJoinedRoom oldRoom =
+    { accountData =
+        oldRoom.accountData
+        |> Maybe.map .events
+        |> Maybe.withDefault []
+    , ephemeral =
+        oldRoom.ephemeral
+        |> Maybe.map .events
+        |> Maybe.withDefault []
+    , state = oldRoom.state
+    , summary = oldRoom.summary
+    , timeline = oldRoom.timeline
+    , unreadNotifiations = oldRoom.unreadNotifiations
+    }
+
+convertLeftRoom : SO.LeftRoom -> O.LeftRoom
+convertLeftRoom oldRoom =
+    { accountData =
+        oldRoom.accountData
+        |> Maybe.map .events
+        |> Maybe.withDefault []
+    , state = oldRoom.state
+    , timeline = oldRoom.timeline
+    }

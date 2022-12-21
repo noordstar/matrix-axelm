@@ -1,0 +1,332 @@
+import sys
+import time
+import yaml
+
+print(sys.argv)
+
+with open(sys.argv[1], 'r') as open_file:
+    obj = yaml.safe_load(open_file)
+    OBJECTS = obj['objects']
+    NAME = obj['name']
+    VERSION = obj['version'].replace('.', '_').capitalize()
+
+encapsulate = lambda s : s if ' ' not in s else '(' + s + ')'
+
+# Boolean
+class BoolField:
+    @property
+    def type_name(self):
+        return 'Bool'
+    
+    @property
+    def encoder(self):
+        return 'E.bool'
+    
+    @property
+    def decoder(self):
+        return 'D.bool'
+
+# Integer
+class IntField:
+    @property
+    def type_name(self):
+        return 'Int'
+    
+    @property
+    def encoder(self):
+        return 'E.int'
+    
+    @property
+    def decoder(self):
+        return 'D.int'
+
+# String
+class StringField:
+    @property
+    def type_name(self):
+        return 'String'
+    
+    @property
+    def encoder(self):
+        return 'E.string'
+    
+    @property
+    def decoder(self):
+        return 'D.string'
+
+# Float: should be avoided as it isn't allowed for canonical JSON.
+class FloatField:
+    @property
+    def type_name(self):
+        return 'Float'
+    
+    @property
+    def encoder(self):
+        return 'E.float'
+    
+    @property
+    def decoder(self):
+        return 'D.float'
+
+# Timestamp
+class TimestampField:
+    @property
+    def type_name(self):
+        return 'Timestamp'
+    
+    @property
+    def encoder(self):
+        return 'encodeTimestamp'
+    
+    @property
+    def decoder(self):
+        return 'timestampDecoder'
+
+# JSON Value
+class ValueField:
+    @property
+    def type_name(self):
+        return 'E.Value'
+    
+    @property
+    def encoder(self):
+        return ''
+    
+    @property
+    def decoder(self):
+        return 'D.value'
+
+# Enum
+class EnumField:
+    def __init__(self, name) -> None:
+        self.name = name
+
+    @property
+    def type_name(self):
+        return 'Enums.' + self.name
+
+    @property
+    def encoder(self):
+        return 'Enums.encode' + self.name
+
+    @property
+    def decoder(self):
+        return 'Enums.' + self.name[0].lower() + self.name[1:] + 'Decoder'
+
+# Another object
+class SpecObjectField:
+    def __init__(self, name) -> None:
+        self.name = name
+    
+    @property
+    def type_name(self):
+        return self.name
+    
+    @property
+    def encoder(self):
+        return 'encode' + self.type_name
+
+    @property
+    def decoder(self):
+        return self.type_name[0].lower() + self.type_name[1:] + 'Decoder'
+
+# List of fields
+class ListField:
+    def __init__(self, child_field):
+        self.child = child_field
+    
+    @property
+    def type_name(self):
+        return 'List ' + encapsulate(self.child.type_name)
+    
+    @property
+    def encoder(self):
+        return 'E.list ' + encapsulate(self.child.encoder)
+    
+    @property
+    def decoder(self):
+        return 'D.list ' + encapsulate(self.child.decoder)
+
+# Dict of string -> fields
+class DictField:
+    def __init__(self, child_field):
+        self.child = child_field
+    
+    @property
+    def type_name(self):
+        return 'Dict String ' + encapsulate(self.child.type_name)
+    
+    @property
+    def encoder(self):
+        return 'E.dict identity ' + encapsulate(self.child.encoder)
+    
+    @property
+    def decoder(self):
+        return 'D.dict ' + encapsulate(self.child.decoder)
+
+def str_to_field(value : str):
+    if value.startswith('[') and value.endswith(']'):
+        return ListField(str_to_field(value[1:-1]))
+    if value.startswith('{') and value.endswith('}'):
+        return DictField(str_to_field(value[1:-1]))
+    if value in OBJECTS:
+        return SpecObjectField(value)
+    
+    match value:
+        case 'value':
+            return ValueField()
+        case 'bool':
+            return BoolField()
+        case 'int':
+            return IntField()
+        case 'string':
+            return StringField()
+        case 'float':
+            return FloatField()
+        case 'timestamp':
+            return TimestampField()
+
+    raise ValueError("Unknown value `" + value + "`")
+
+class Field:
+    def __init__(self, key, value):
+        self.key = key
+
+        self.field = str_to_field(value['type'])
+        self.required = False
+        if 'required' in value:
+            self.required = value['required']
+        if not self.required:
+            self.default = None if 'default' not in value else value['default']
+    
+    @property
+    def elm_name(self):
+        if self.key == 'type':
+            return 'contentType'
+        else:
+            words = self.key.lower().replace('_', ' ').replace('.', ' ').split(' ')
+            words = ''.join([w.capitalize() for w in words])
+            words = words[0].lower() + words[1:]
+            return words
+
+    @property
+    def encoder(self):
+        if self.required or self.default is not None:
+            return (
+                'Just <| ' + self.field.encoder + ' data.' + self.elm_name
+            )
+        elif self.field.__class__ == ValueField:
+            return 'data.' + self.elm_name
+        else:
+            return (
+                'Maybe.map ' + encapsulate(self.field.encoder) + ' data.' + self.elm_name
+            )
+    
+    @property
+    def decoder(self):
+        if self.required:
+            field = f'D.field "{self.key}"'
+        elif self.default is None:
+            field = f'opField "{self.key}"'
+        else:
+            field = f'opFieldWithDefault "{self.key}" {self.default}'
+        
+        return f'{field} {encapsulate(self.field.decoder)}'
+
+    @property
+    def type_definition(self):
+        if self.required or self.default is not None:
+            return self.field.type_name
+        else:
+            return 'Maybe ' + encapsulate(self.field.type_name)
+
+class Object:
+    def __init__(self, key, value):
+        self.name = key
+        self.description = value['description']
+        self.anti_recursion = 'anti_recursion' in value
+        self.fields = []
+
+        for k in sorted(value['fields'].keys()):
+            v = value['fields'][k]
+            self.fields.append(Field(k, v))
+    
+    @property
+    def elm_name(self):
+        return self.name
+        # return ''.join([word.capitalize() for word in self.name.split(' ')])
+    
+    @property
+    def lowercase_elm_name(self):
+        n = self.elm_name
+        return n[0].lower() + n[1:]
+    
+    @property
+    def encoder_name(self):
+        return 'encode' + self.elm_name
+    
+    @property
+    def decoder_name(self):
+        return self.lowercase_elm_name + 'Decoder'
+    
+    @property
+    def encoder(self):
+        return (
+            f"{self.encoder_name} : {self.elm_name} -> E.Value\n" +
+            f"{self.encoder_name} data =\n" +
+            f"    maybeObject [\n" +
+            ',\n'.join(f'        ("{f.key}", {f.encoder})' for f in self.fields) +
+            f"\n            ]\n" +
+            f"\n\n"
+        )
+
+    @property
+    def decoder(self):
+        return (
+            f"{self.decoder_name} : D.Decoder {self.elm_name}\n" +
+            f"{self.decoder_name} =\n" +
+            f"    D.map{len(self.fields)}\n".replace('D.map1\n', 'D.map\n') +
+            f"        (\\" + ' '.join(["abcdefghijklmnop"[i] for i in range(len(self.fields))]) + ' ->\n' +
+            f"            " + "{ " + ', '.join([self.fields[i].elm_name + '=' + "abcdefghijklmnop"[i] for i in range(len(self.fields))]) + '})\n' +
+            ''.join(f"            " + encapsulate(f.decoder) + '\n' for f in self.fields) +
+            f"\n\n"
+        )
+    
+    @property
+    def type_definition(self):
+        return (
+            "{-| " + self.description + "\n-}\n" +
+            ( f"type {self.elm_name} = {self.elm_name} " if self.anti_recursion else f"type alias {self.elm_name} = " ) +
+            "{\n" + ',\n'.join(f"    {f.elm_name} : {f.type_definition}" for f in self.fields) +
+            '\n' + "    }\n\n"
+        )
+
+object_list = [Object(name, val) for name, val in OBJECTS.items()]
+object_list.sort(key=lambda o : o.elm_name.lower())
+
+with open('development/out.elm', 'w') as write_file:
+    write = write_file.write
+
+    write("module Development.Out exposing (\n    ")
+    imports = [f"{o.elm_name}\n    , {o.encoder_name}\n    , {o.decoder_name}" for o in object_list]
+    write('\n    , '.join(imports) + "\n    )\n")
+    write("{-| Automatically generated '" + NAME + "'\n\nLast generated at Unix time ")
+    write(str(int(time.time())) + "\n-}\n\n")
+
+
+    write("""
+import Dict exposing (Dict)
+import Internal.Tools.DecodeExtra exposing (opField, opFieldWithDefault)
+import Internal.Tools.EncodeExtra exposing (maybeObject)
+import Internal.Tools.Timestamp exposing (Timestamp, encodeTimestamp, timestampDecoder)
+import Internal.Values.SpecEnums as Enums
+import Json.Decode as D
+import Json.Encode as E
+""")
+
+    for o in object_list:
+        write(o.type_definition)
+        write(o.encoder)
+        write(o.decoder)
+    
+print('Generated file!')

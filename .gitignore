@@ -1,2 +1,5 @@
 # Elm stuff
 elm-stuff/
+
+# Python stuff
+.env/
