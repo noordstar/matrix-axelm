@@ -2,7 +2,6 @@ module Internal.Api.GetEvent.Api exposing (..)
 
 import Internal.Api.Request as R
 import Internal.Values.Exceptions as X
-import Internal.Values.SpecEnums as Enums
 import Json.Decode as D
 import Task exposing (Task)
 

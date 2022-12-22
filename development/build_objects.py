@@ -322,21 +322,35 @@ def main(in_file, out_file):
         write(str(int(time.time())) + "\n-}\n\n")
 
 
+        content = ''.join([o.type_definition + o.encoder + o.decoder for o in object_list])
+        
+        write("\n")
+        if 'Dict' in content:
+            write("import Dict exposing (Dict)\n")
+        
+        if 'opField' in content and 'opFieldWithDefault' in content:
+            write("import Internal.Tools.DecodeExtra exposing (opField, opFieldWithDefault)\n")
+        elif 'opFieldWithDefault' in content:
+            write("import Internal.Tools.DecodeExtra exposing (opField)\n")
+        elif 'opField' in content:
+            write("import Internal.Tools.DecodeExtra exposing (opField)\n")
+        
+        if 'maybeObject' in content:
+            write("import Internal.Tools.EncodeExtra exposing (maybeObject)\n")
+        
+        if 'Timestamp' in content:
+            write("import Internal.Tools.Timestamp exposing (Timestamp, encodeTimestamp, timestampDecoder)\n")
+        
+        if 'Enums' in content:
+            write("import Internal.Values.SpecEnums as Enums\n")
+
         write("""
-import Dict exposing (Dict)
-import Internal.Tools.DecodeExtra exposing (opField, opFieldWithDefault)
-import Internal.Tools.EncodeExtra exposing (maybeObject)
-import Internal.Tools.Timestamp exposing (Timestamp, encodeTimestamp, timestampDecoder)
-import Internal.Values.SpecEnums as Enums
 import Json.Decode as D
 import Json.Encode as E
 
 """)
 
-        for o in object_list:
-            write(o.type_definition)
-            write(o.encoder)
-            write(o.decoder)
+        write(content)
         
     print(f'Generated file {out_file}!')
 

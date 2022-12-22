@@ -1,0 +1,249 @@
+LoginType
+Given type that a user may log in with.
+m.login.password
+Password
+m.login.sso
+SSO
+m.login.token
+Token
+STOP
+AccountKind
+The kind of account - currently defined as regular users and guests.
+guest
+Guest
+user
+User
+STOP
+ThirdPartyMedium
+A 3rd party medium that a user could use for authentication.
+email
+Email
+msisdn
+Msisdn
+STOP
+EventFormat
+Whether an event should be formatted for a client or for federation purposes.
+client
+Client
+federation
+Federation
+STOP
+JoinRules
+The type of rules used for users wishing to join a room.
+public
+Public
+knock
+Knock
+invite
+Invite
+private
+Private
+restricted
+Restricted
+STOP
+RestrictedCondition
+The type of condition that applies to a restricted room.
+m.room_membership
+ConditionRoomMembership
+STOP
+MembershipState
+The membership state of a user in a room.
+invite
+Invited
+join
+Joined
+knock
+Knocked
+leave
+Left
+ban
+Banned
+STOP
+UserPresence
+The type of user presence.
+offline
+Offline
+online
+Online
+unavailable
+UserUnavailable
+STOP
+RoomVisibility
+The visibility of a room to users who are not a member of the room.
+private
+RoomPrivate
+public
+RoomPublic
+STOP
+EventOrder
+How events are expected to be ordered.
+f
+Chronological
+b
+ReverseChronological
+STOP
+RoomPreset
+Room presets that can be called upon room creation.
+private_chat
+PrivateChat
+public_chat
+PublicChat
+trusted_private_chat
+TrustedPrivateChat
+STOP
+MessageType
+The type of message sent in an `m.room.message` event.
+m.text
+Text
+m.emote
+Emote
+m.notice
+Notice
+m.image
+Image
+m.file
+File
+m.audio
+Audio
+m.location
+Location
+m.video
+Video
+m.key.verification.request
+VerificationRequest
+m.server_notice
+ServerNotice
+STOP
+SessionDescriptionType
+A session description type.
+answer
+Answer
+offer
+Offer
+STOP
+HangupReason
+Error reason for a call hangup.
+ice_failed
+IceFailed
+invite_timeout
+InviteTimeout
+STOP
+ReceiptType
+The type of receipt indicating that a user has read one or more events in a room.
+m.read
+Read
+m.read.private
+ReadPrivate
+m.fully_read
+FullyRead
+STOP
+ResizingMethod
+Desired resizing method for images that do not fit.
+crop
+Crop
+scale
+Scale
+STOP
+VerificationMethod
+Verification method to use.
+m.sas.v1
+SASv1
+m.reciprocate.v1
+ReciprocateV1
+STOP
+BackupStorageAlgorithm
+Algorithm used for storing backups.
+m.megolm_backup.v1.curve25519-aes-sha2
+MegolmBackupV1Curve25519aesSHA2
+STOP
+EncryptionAlgorithm
+The encryption algorithm an event is encrypted with.
+m.olm.v1.curve25519-aes-sha2
+OlmV1Curve25519aesSHA2
+m.megolm.v1.aes-sha2
+MegolmV1aesSHA2
+STOP
+RequestAction
+Specified action whenever a key or a secret is requested.
+request
+Request
+request_cancellation
+RequestCancellation
+STOP
+UnavailableKey
+Reason why a key was not sent.
+m.blacklisted
+BlacklistedKey
+m.unverified
+UnverifiedKey
+m.unauthorised
+UnauthorisedKey
+m.unavailable
+UnavailableKey
+m.no_olm
+NoOlm
+STOP
+HistoryVisibility
+The history visibility of a room.
+invited
+FromMomentOfInvite
+joined
+FromMomentOfJoined
+shared
+FullHistoryToMembers
+world_readable
+FullHistoryToLiterallyEveryone
+STOP
+PushRuleKind
+The kind of push rule.
+override
+Override
+underride
+Underride
+sender
+Sender
+room
+Room
+content
+Content
+STOP
+GuestAccess
+Whether guests are allowed to join.
+can_join
+GuestsAreWelcome
+forbidden
+GuestsAreForbidden
+STOP
+IncludeThreads
+Flag to denote which thread roots are to be included.
+all
+IncludeAllThreads
+participated
+IncludeParticipatedThreads
+STOP
+ConditionType
+A type of condition that must be satisfied.
+m.room.membership
+RoomMembershipCondition
+STOP
+RoomVersionStability
+The stability of a given room version.
+stable
+Stable
+unstable
+Unstable
+STOP
+SearchOrdering
+The order in which to search for results.
+recent
+Recent
+rank
+Rank
+STOP
+GroupKey
+Key that defines a search request group.
+room_id
+RoomIDKey
+sender
+SenderKey
+STOP

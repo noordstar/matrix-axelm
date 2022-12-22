@@ -17,6 +17,7 @@ getEvent : Versions -> GetEvent.EventInput -> GetEvent.EventOutput
 getEvent =
     GetEvent.getEvent
 
+
 {-| Get information on all users who joined a room.
 -}
 joinedMembers : Versions -> JoinedMembers.JoinedMembersInput -> JoinedMembers.JoinedMembersOutput

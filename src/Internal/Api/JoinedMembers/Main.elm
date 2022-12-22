@@ -11,17 +11,20 @@ import Internal.Api.VersionControl as V
 import Internal.Values.Exceptions as X
 import Task exposing (Task)
 
+
 joinedMembers : List String -> JoinedMembersInput -> JoinedMembersOutput
 joinedMembers =
     V.firstVersion V1_1.packet
-    |> V.updateWith V1_2.packet
-    |> V.updateWith V1_3.packet
-    |> V.updateWith V1_4.packet
-    |> V.updateWith V1_5.packet
-    |> V.toFunction
-
-type alias JoinedMembersInput = Api.JoinedMembersInputV1
-
-type alias JoinedMembersOutput = Task X.Error O.RoomMemberList
+        |> V.updateWith V1_2.packet
+        |> V.updateWith V1_3.packet
+        |> V.updateWith V1_4.packet
+        |> V.updateWith V1_5.packet
+        |> V.toFunction
 
 
+type alias JoinedMembersInput =
+    Api.JoinedMembersInputV1
+
+
+type alias JoinedMembersOutput =
+    Task X.Error O.RoomMemberList
