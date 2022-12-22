@@ -1,0 +1,12 @@
+version: v1.1
+name: SpecObjects
+objects:
+  Event:
+    description: The event that has been requested.
+    fields:
+      content:
+        type: value
+        required: true
+      type:
+        type: string
+        required: true

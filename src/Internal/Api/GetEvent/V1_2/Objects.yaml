@@ -1,0 +1,36 @@
+version: v1.2
+name: Objects
+objects:
+  OldBlindEvent:
+    description: Client Event that contains significantly less information in older spec versions.
+    fields:
+      content:
+        type: value
+        required: true
+      event_id:
+        type: string
+      origin_server_ts:
+        type: timestamp
+      room_id:
+        type: string
+      sender:
+        type: string
+      state_key:
+        type: string
+      type:
+        type: string
+        required: true
+      unsigned:
+        type: UnsignedData
+  UnsignedData:
+    anti_recursion: true
+    description: Extra information about the event.
+    fields:
+      age:
+        type: int
+      prev_content:
+        type: value
+      redacted_because:
+        type: OldBlindEvent
+      transaction_id:
+        type: string

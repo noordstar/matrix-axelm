@@ -1,0 +1,12 @@
+version: v1.1
+name: Objects
+objects:
+  BlindEvent:
+    description: Blind event
+    fields:
+      content:
+        type: value
+        required: true
+      type:
+        type: string
+        required: true
