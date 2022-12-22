@@ -4,6 +4,7 @@ module Internal.Api.All exposing (..)
 -}
 
 import Internal.Api.GetEvent.Main as GetEvent
+import Internal.Api.JoinedMembers.Main as JoinedMembers
 
 
 type alias Versions =
@@ -15,3 +16,9 @@ type alias Versions =
 getEvent : Versions -> GetEvent.EventInput -> GetEvent.EventOutput
 getEvent =
     GetEvent.getEvent
+
+{-| Get information on all users who joined a room.
+-}
+joinedMembers : Versions -> JoinedMembers.JoinedMembersInput -> JoinedMembers.JoinedMembersOutput
+joinedMembers =
+    JoinedMembers.joinedMembers
