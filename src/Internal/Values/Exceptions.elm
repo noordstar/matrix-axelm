@@ -14,7 +14,7 @@ type Error
     = InternetException Http.Error
     | SDKException ClientError
     | ServerException ServerError
-    | UnknownVersion
+    | UnsupportedVersion
 
 
 {-| Errors that this SDK might return if it doesn't like its own input, if it
