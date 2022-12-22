@@ -11,11 +11,20 @@ import Internal.Api.VersionControl as V
 import Internal.Values.Exceptions as X
 import Task exposing (Task)
 
-getEvent : List String -> Api.GetEventInputV1 -> Task X.Error O.OldBlindEvent
+
+getEvent : List String -> EventInput -> EventOutput
 getEvent =
     V.firstVersion V1_1.packet
-    |> V.updateWith V1_2.packet
-    |> V.updateWith V1_3.packet
-    |> V.updateWith V1_4.packet
-    |> V.updateWith V1_5.packet
-    |> V.toFunction
+        |> V.updateWith V1_2.packet
+        |> V.updateWith V1_3.packet
+        |> V.updateWith V1_4.packet
+        |> V.updateWith V1_5.packet
+        |> V.toFunction
+
+
+type alias EventOutput =
+    Task X.Error O.OldBlindEvent
+
+
+type alias EventInput =
+    Api.GetEventInputV1

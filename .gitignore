@@ -3,3 +3,4 @@ elm-stuff/
 
 # Python stuff
 .env/
+__pycache__/
