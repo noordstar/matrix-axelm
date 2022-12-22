@@ -6,7 +6,7 @@ import Internal.Api.GetEvent.V1_3.Convert as C
 import Internal.Api.GetEvent.V1_3.Objects as O
 import Internal.Api.GetEvent.V1_3.SpecObjects as SO
 import Internal.Api.GetEvent.V1_3.Upcast as U
-import Internal.Api.GetEvent.VersionControl as V
+import Internal.Api.VersionControl as V
 
 
 packet : V.GetEventVersion Api.GetEventInputV1 PO.OldBlindEvent Api.GetEventInputV1 O.OldBlindEvent
