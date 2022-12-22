@@ -3,7 +3,8 @@ module Internal.Api.Main exposing (..)
 import Internal.Api.V1_1.Api as V1_1
 import Internal.Api.V1_2.Api as V1_2
 import Internal.Api.V1_3.Api as V1_3
-import Internal.Api.V1_2.Objects as O
+import Internal.Api.V1_4.Api as V1_4
+import Internal.Api.V1_4.Objects as O
 import Internal.Api.VersionControl exposing (..)
 import Internal.Values.Exceptions as X
 import Task exposing (Task)
@@ -20,6 +21,7 @@ package =
     getVersion V1_1.packet
         |> updateWith V1_2.packet
         |> updateWith V1_3.packet
+        |> updateWith V1_4.packet
 
 
 getVersion : VersionPacket x a -> FinalPackage a
