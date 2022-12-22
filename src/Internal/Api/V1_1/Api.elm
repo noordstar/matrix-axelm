@@ -103,7 +103,7 @@ convertJoinedRoom oldRoom =
         oldRoom.ephemeral
             |> Maybe.map .events
             |> Maybe.withDefault []
-    , state = 
+    , state =
         oldRoom.state
             |> Maybe.map .events
             |> Maybe.withDefault []
@@ -119,7 +119,7 @@ convertLeftRoom oldRoom =
         oldRoom.accountData
             |> Maybe.map .events
             |> Maybe.withDefault []
-    , state = 
+    , state =
         oldRoom.state
             |> Maybe.map .events
             |> Maybe.withDefault []
