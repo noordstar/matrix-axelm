@@ -159,8 +159,7 @@ objects:
     fields:
       events:
         type: "[ClientEventWithoutRoomID]"
-        required: false
-        default: "[]"
+        required: true
       limited:
         type: bool
         required: false

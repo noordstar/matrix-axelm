@@ -60,7 +60,7 @@ module Internal.Api.V1_2.SpecObjects exposing
 
 {-| Automatically generated 'SpecObjects'
 
-Last generated at Unix time 1671705986
+Last generated at Unix time 1671707439
 
 -}
 
@@ -540,7 +540,7 @@ timelineDecoder =
         (\a b c ->
             { events = a, limited = b, prevBatch = c }
         )
-        (opFieldWithDefault "events" [] (D.list clientEventWithoutRoomIDDecoder))
+        (D.field "events" (D.list clientEventWithoutRoomIDDecoder))
         (opFieldWithDefault "limited" False D.bool)
         (opField "prev_batch" D.string)
 
