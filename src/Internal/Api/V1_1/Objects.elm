@@ -4,7 +4,6 @@ module Internal.Api.V1_1.Objects exposing
     , LeftRoom
     , RoomSummary
     , Rooms
-    , State
     , StrippedState
     , Sync
     , SyncRoomEvent
@@ -18,7 +17,6 @@ module Internal.Api.V1_1.Objects exposing
     , encodeLeftRoom
     , encodeRoomSummary
     , encodeRooms
-    , encodeState
     , encodeStrippedState
     , encodeSync
     , encodeSyncRoomEvent
@@ -30,7 +28,6 @@ module Internal.Api.V1_1.Objects exposing
     , leftRoomDecoder
     , roomSummaryDecoder
     , roomsDecoder
-    , stateDecoder
     , strippedStateDecoder
     , syncDecoder
     , syncRoomEventDecoder
@@ -42,7 +39,7 @@ module Internal.Api.V1_1.Objects exposing
 
 {-| Automatically generated 'Objects'
 
-Last generated at Unix time 1671640551
+Last generated at Unix time 1671705114
 
 -}
 
@@ -86,7 +83,7 @@ blindEventDecoder =
 type alias JoinedRoom =
     { accountData : List BlindEvent
     , ephemeral : List BlindEvent
-    , state : Maybe State
+    , state : List SyncStateEvent
     , summary : Maybe RoomSummary
     , timeline : Maybe Timeline
     , unreadNotifiations : Maybe UnreadNotificationCounts
@@ -98,7 +95,7 @@ encodeJoinedRoom data =
     maybeObject
         [ ( "account_data", Just <| E.list encodeBlindEvent data.accountData )
         , ( "ephemeral", Just <| E.list encodeBlindEvent data.ephemeral )
-        , ( "state", Maybe.map encodeState data.state )
+        , ( "state", Just <| E.list encodeSyncStateEvent data.state )
         , ( "summary", Maybe.map encodeRoomSummary data.summary )
         , ( "timeline", Maybe.map encodeTimeline data.timeline )
         , ( "unread_notifiations", Maybe.map encodeUnreadNotificationCounts data.unreadNotifiations )
@@ -113,7 +110,7 @@ joinedRoomDecoder =
         )
         (D.field "account_data" (D.list blindEventDecoder))
         (D.field "ephemeral" (D.list blindEventDecoder))
-        (opField "state" stateDecoder)
+        (D.field "state" (D.list syncStateEventDecoder))
         (opField "summary" roomSummaryDecoder)
         (opField "timeline" timelineDecoder)
         (opField "unread_notifiations" unreadNotificationCountsDecoder)
@@ -123,7 +120,7 @@ joinedRoomDecoder =
 -}
 type alias LeftRoom =
     { accountData : List BlindEvent
-    , state : Maybe State
+    , state : List SyncStateEvent
     , timeline : Maybe Timeline
     }
 
@@ -132,7 +129,7 @@ encodeLeftRoom : LeftRoom -> E.Value
 encodeLeftRoom data =
     maybeObject
         [ ( "account_data", Just <| E.list encodeBlindEvent data.accountData )
-        , ( "state", Maybe.map encodeState data.state )
+        , ( "state", Just <| E.list encodeSyncStateEvent data.state )
         , ( "timeline", Maybe.map encodeTimeline data.timeline )
         ]
 
@@ -144,7 +141,7 @@ leftRoomDecoder =
             { accountData = a, state = b, timeline = c }
         )
         (D.field "account_data" (D.list blindEventDecoder))
-        (opField "state" stateDecoder)
+        (D.field "state" (D.list syncStateEventDecoder))
         (opField "timeline" timelineDecoder)
 
 
@@ -207,29 +204,6 @@ roomSummaryDecoder =
         (opField "m.heroes" (D.list D.string))
         (opField "m.invited_member_count" D.int)
         (opField "m.joined_member_count" D.int)
-
-
-{-| Updates to the state of a room.
--}
-type alias State =
-    { events : List SyncStateEvent
-    }
-
-
-encodeState : State -> E.Value
-encodeState data =
-    maybeObject
-        [ ( "events", Just <| E.list encodeSyncStateEvent data.events )
-        ]
-
-
-stateDecoder : D.Decoder State
-stateDecoder =
-    D.map
-        (\a ->
-            { events = a }
-        )
-        (opFieldWithDefault "events" [] (D.list syncStateEventDecoder))
 
 
 {-| Stripped state events of a room that the user has limited access to.
@@ -342,6 +316,7 @@ type alias SyncStateEvent =
     , originServerTs : Timestamp
     , prevContent : Maybe E.Value
     , sender : String
+    , stateKey : String
     , contentType : String
     , unsigned : Maybe UnsignedData
     }
@@ -355,6 +330,7 @@ encodeSyncStateEvent data =
         , ( "origin_server_ts", Just <| encodeTimestamp data.originServerTs )
         , ( "prev_content", data.prevContent )
         , ( "sender", Just <| E.string data.sender )
+        , ( "state_key", Just <| E.string data.stateKey )
         , ( "type", Just <| E.string data.contentType )
         , ( "unsigned", Maybe.map encodeUnsignedData data.unsigned )
         ]
@@ -362,15 +338,16 @@ encodeSyncStateEvent data =
 
 syncStateEventDecoder : D.Decoder SyncStateEvent
 syncStateEventDecoder =
-    D.map7
-        (\a b c d e f g ->
-            { content = a, eventId = b, originServerTs = c, prevContent = d, sender = e, contentType = f, unsigned = g }
+    D.map8
+        (\a b c d e f g h ->
+            { content = a, eventId = b, originServerTs = c, prevContent = d, sender = e, stateKey = f, contentType = g, unsigned = h }
         )
         (D.field "content" D.value)
         (D.field "event_id" D.string)
         (D.field "origin_server_ts" timestampDecoder)
         (opField "prev_content" D.value)
         (D.field "sender" D.string)
+        (D.field "state_key" D.string)
         (D.field "type" D.string)
         (opField "unsigned" unsignedDataDecoder)
 

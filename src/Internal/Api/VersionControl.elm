@@ -6,7 +6,8 @@ import Task exposing (Task)
 
 
 type alias VersionPacket prevSync currSync =
-    { sync : SyncInput -> Task Error currSync
+    { version : String
+    , sync : SyncInput -> Task Error currSync
     , upcastSync : prevSync -> currSync
     }
 

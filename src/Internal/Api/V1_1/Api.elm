@@ -7,25 +7,29 @@ import Internal.Api.V1_1.SpecObjects as SO
 import Internal.Api.VersionControl exposing (..)
 import Internal.Values.Exceptions as X
 import Internal.Values.SpecEnums as Enums
+import Json.Decode as D
 import Task exposing (Task)
 
 
 packet : VersionPacket () O.Sync
 packet =
-    { sync = sync
+    { version = "v1.1"
+    , sync = sync
     , upcastSync =
         \_ ->
             { accountData = []
             , nextBatch = ""
             , presence = []
-            , rooms = Just
-                { invite = Dict.empty
-                , join = Dict.empty
-                , knock = Dict.empty
-                , leave = Dict.empty
-                }
+            , rooms =
+                Just
+                    { invite = Dict.empty
+                    , join = Dict.empty
+                    , knock = Dict.empty
+                    , leave = Dict.empty
+                    }
             }
     }
+
 
 sync : SyncInput -> Task X.Error O.Sync
 sync data =
@@ -50,64 +54,74 @@ sync data =
         , decoder = \_ -> D.map convertSync SO.syncDecoder
         }
 
+
 convertSync : SO.Sync -> O.Sync
 convertSync oldSync =
-    { accountData = 
+    { accountData =
         oldSync.accountData
-        |> Maybe.map .events
-        |> Maybe.withDefault []
+            |> Maybe.map .events
+            |> Maybe.withDefault []
     , nextBatch = oldSync.nextBatch
     , presence =
         oldSync.presence
-        |> Maybe.map .events
-        |> Maybe.withDefault []
-    , rooms = convertRooms oldSync.rooms
+            |> Maybe.map .events
+            |> Maybe.withDefault []
+    , rooms = Maybe.map convertRooms oldSync.rooms
     }
+
 
 convertRooms : SO.Rooms -> O.Rooms
 convertRooms oldRooms =
     { invite =
         oldRooms.invite
-        |> Dict.map
-            (\_ state -> 
-                state.inviteState
-                |> Maybe.map .events
-                |> Maybe.withDefault []
-            )
-    , join = convertJoinedRoom oldRooms.join
+            |> Dict.map
+                (\_ state ->
+                    state.inviteState
+                        |> Maybe.map .events
+                        |> Maybe.withDefault []
+                )
+    , join = Dict.map (\_ -> convertJoinedRoom) oldRooms.join
     , knock =
         oldRooms.knock
-        |> Dict.map
-            (\_ state ->
-                state.knockState
-                |> Maybe.map .events
-                |> Maybe.withDefault []
-            )
-    , leave = convertLeftRoom oldRooms.leave
+            |> Dict.map
+                (\_ state ->
+                    state.knockState
+                        |> Maybe.map .events
+                        |> Maybe.withDefault []
+                )
+    , leave = Dict.map (\_ -> convertLeftRoom) oldRooms.leave
     }
+
 
 convertJoinedRoom : SO.JoinedRoom -> O.JoinedRoom
 convertJoinedRoom oldRoom =
     { accountData =
         oldRoom.accountData
-        |> Maybe.map .events
-        |> Maybe.withDefault []
+            |> Maybe.map .events
+            |> Maybe.withDefault []
     , ephemeral =
         oldRoom.ephemeral
-        |> Maybe.map .events
-        |> Maybe.withDefault []
-    , state = oldRoom.state
+            |> Maybe.map .events
+            |> Maybe.withDefault []
+    , state = 
+        oldRoom.state
+            |> Maybe.map .events
+            |> Maybe.withDefault []
     , summary = oldRoom.summary
     , timeline = oldRoom.timeline
     , unreadNotifiations = oldRoom.unreadNotifiations
     }
 
+
 convertLeftRoom : SO.LeftRoom -> O.LeftRoom
 convertLeftRoom oldRoom =
     { accountData =
         oldRoom.accountData
-        |> Maybe.map .events
-        |> Maybe.withDefault []
-    , state = oldRoom.state
+            |> Maybe.map .events
+            |> Maybe.withDefault []
+    , state = 
+        oldRoom.state
+            |> Maybe.map .events
+            |> Maybe.withDefault []
     , timeline = oldRoom.timeline
     }

@@ -2,13 +2,15 @@ import sys
 import time
 import yaml
 
-print(sys.argv)
-
 with open(sys.argv[1], 'r') as open_file:
     obj = yaml.safe_load(open_file)
     OBJECTS = obj['objects']
     NAME = obj['name']
     VERSION = obj['version'].replace('.', '_').capitalize()
+
+OUT_FILE = sys.argv[2]
+if OUT_FILE.endswith('.elm'):
+    OUT_FILE = OUT_FILE[:-4]
 
 encapsulate = lambda s : s if ' ' not in s else '(' + s + ')'
 
@@ -128,7 +130,12 @@ class SpecObjectField:
 
     @property
     def decoder(self):
-        return self.type_name[0].lower() + self.type_name[1:] + 'Decoder'
+        decoder_name = self.type_name[0].lower() + self.type_name[1:] + 'Decoder'
+
+        if 'anti_recursion' in OBJECTS[self.name]:
+            return f'D.lazy (\_ -> {decoder_name})'
+        else:
+            return decoder_name
 
 # List of fields
 class ListField:
@@ -273,7 +280,7 @@ class Object:
     def encoder(self):
         return (
             f"{self.encoder_name} : {self.elm_name} -> E.Value\n" +
-            f"{self.encoder_name} data =\n" +
+            f"{self.encoder_name} " + (f'({self.elm_name} data)' if self.anti_recursion else 'data') + " =\n" +
             f"    maybeObject [\n" +
             ',\n'.join(f'        ("{f.key}", {f.encoder})' for f in self.fields) +
             f"\n            ]\n" +
@@ -287,7 +294,7 @@ class Object:
             f"{self.decoder_name} =\n" +
             f"    D.map{len(self.fields)}\n".replace('D.map1\n', 'D.map\n') +
             f"        (\\" + ' '.join(["abcdefghijklmnop"[i] for i in range(len(self.fields))]) + ' ->\n' +
-            f"            " + "{ " + ', '.join([self.fields[i].elm_name + '=' + "abcdefghijklmnop"[i] for i in range(len(self.fields))]) + '})\n' +
+            f"            " + (self.elm_name + ' ' if self.anti_recursion else '') + "{ " + ', '.join([self.fields[i].elm_name + '=' + "abcdefghijklmnop"[i] for i in range(len(self.fields))]) + '})\n' +
             ''.join(f"            " + encapsulate(f.decoder) + '\n' for f in self.fields) +
             f"\n\n"
         )
@@ -304,11 +311,11 @@ class Object:
 object_list = [Object(name, val) for name, val in OBJECTS.items()]
 object_list.sort(key=lambda o : o.elm_name.lower())
 
-with open('development/out.elm', 'w') as write_file:
+with open(OUT_FILE + '.elm', 'w') as write_file:
     write = write_file.write
 
-    write("module Development.Out exposing (\n    ")
-    imports = [f"{o.elm_name}\n    , {o.encoder_name}\n    , {o.decoder_name}" for o in object_list]
+    write(f"module {OUT_FILE[4:].replace('/', '.')} exposing (\n    ")
+    imports = [f"{o.elm_name + '(..)' if o.anti_recursion else o.elm_name}\n    , {o.encoder_name}\n    , {o.decoder_name}" for o in object_list]
     write('\n    , '.join(imports) + "\n    )\n")
     write("{-| Automatically generated '" + NAME + "'\n\nLast generated at Unix time ")
     write(str(int(time.time())) + "\n-}\n\n")

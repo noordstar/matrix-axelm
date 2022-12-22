@@ -128,6 +128,9 @@ objects:
       sender:
         type: string
         required: true
+      state_key:
+        type: string
+        required: true
       type:
         type: string
         required: true

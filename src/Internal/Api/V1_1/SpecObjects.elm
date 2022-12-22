@@ -63,7 +63,7 @@ module Internal.Api.V1_1.SpecObjects exposing
 
 {-| Automatically generated 'SpecObjects'
 
-Last generated at Unix time 1671640096
+Last generated at Unix time 1671705413
 
 -}
 
@@ -524,6 +524,7 @@ type alias SyncStateEvent =
     , originServerTs : Timestamp
     , prevContent : Maybe E.Value
     , sender : String
+    , stateKey : String
     , contentType : String
     , unsigned : Maybe UnsignedData
     }
@@ -537,6 +538,7 @@ encodeSyncStateEvent data =
         , ( "origin_server_ts", Just <| encodeTimestamp data.originServerTs )
         , ( "prev_content", data.prevContent )
         , ( "sender", Just <| E.string data.sender )
+        , ( "state_key", Just <| E.string data.stateKey )
         , ( "type", Just <| E.string data.contentType )
         , ( "unsigned", Maybe.map encodeUnsignedData data.unsigned )
         ]
@@ -544,15 +546,16 @@ encodeSyncStateEvent data =
 
 syncStateEventDecoder : D.Decoder SyncStateEvent
 syncStateEventDecoder =
-    D.map7
-        (\a b c d e f g ->
-            { content = a, eventId = b, originServerTs = c, prevContent = d, sender = e, contentType = f, unsigned = g }
+    D.map8
+        (\a b c d e f g h ->
+            { content = a, eventId = b, originServerTs = c, prevContent = d, sender = e, stateKey = f, contentType = g, unsigned = h }
         )
         (D.field "content" D.value)
         (D.field "event_id" D.string)
         (D.field "origin_server_ts" timestampDecoder)
         (opField "prev_content" D.value)
         (D.field "sender" D.string)
+        (D.field "state_key" D.string)
         (D.field "type" D.string)
         (opField "unsigned" unsignedDataDecoder)
 
