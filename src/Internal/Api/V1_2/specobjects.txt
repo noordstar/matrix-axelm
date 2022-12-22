@@ -1,0 +1,294 @@
+v1.2
+Sync
+The sync response the homeserver sends to the user.
+account_data
+account data
+y
+n
+
+
+next_batch
+string
+y
+
+presence
+presence
+y
+n
+
+
+rooms
+rooms
+y
+n
+
+
+STOP
+The global private data created by this user.
+events
+[event]
+y
+n
+[]
+
+STOP
+The updates to the presence status of other users.
+events
+[event]
+n
+[]
+
+STOP
+Updates to rooms.
+invite
+{invited room}
+y
+n
+Dict.empty
+
+join
+{joined room}
+y
+n
+Dict.empty
+
+knock
+{knocked room}
+y
+n
+Dict.empty
+
+leave
+{left room}
+y
+n
+Dict.empty
+
+STOP
+A general event.
+content
+event content
+y
+y
+
+type
+string
+y
+
+STOP
+Room that the user has been invited to.
+invite_state
+invite state
+y
+n
+
+
+STOP
+Room that the user has joined.
+account_data
+account data
+n
+
+
+ephemeral
+ephemeral
+y
+n
+
+
+state
+state
+y
+n
+
+
+summary
+room summary
+y
+n
+
+
+timeline
+timeline
+y
+n
+
+
+unread_notifications
+unread notification counts
+y
+n
+
+
+STOP
+Room that the user has knocked upon.
+knock_state
+knock state
+y
+n
+
+
+STOP
+Room that the user has left.
+account_data
+account data
+n
+
+
+state
+state
+n
+
+
+timeline
+timeline
+n
+
+
+STOP
+Content of a given event.
+STOP
+The state of a room that the user has been invited to.
+events
+[stripped state event]
+y
+n
+[]
+
+STOP
+Ephemeral events in a room that aren't recorded in the timeline or the state of the room.
+events
+[event]
+n
+[]
+
+STOP
+Updates to the state of a room.
+events
+[client event without room id]
+y
+n
+[]
+
+STOP
+Information about a room which clients may need to correctly render it to users.
+m.heroes
+[string]
+n
+
+
+m.invited_member_count
+int
+n
+
+
+m.joined_member_count
+int
+n
+
+
+STOP
+The timeline of messages and state changes in a room.
+events
+[client event without room id]
+n
+[]
+
+limited
+bool
+n
+False
+
+prev_batch
+string
+n
+
+
+STOP
+Counts of unread notifications for this room.
+highlight_count
+int
+n
+
+
+notification_count
+int
+n
+
+
+STOP
+The state of a room that the user has knocked upon.
+events
+[stripped state event]
+n
+[]
+
+STOP
+The StrippedState events that form the state of a room that the user has limited access to.
+content
+event content
+y
+
+sender
+string
+y
+
+state_key
+string
+y
+
+type
+string
+y
+
+STOP
+content
+content
+event content
+y
+
+event_id
+string
+y
+
+origin_server_ts
+timestamp
+y
+
+sender
+string
+y
+
+state_key
+string
+n
+
+
+type
+string
+y
+
+unsigned
+unsigned data
+y
+n
+
+
+STOP
+Data that isn't getting signed for Canonical JSON.
+age
+int
+n
+
+
+redacted_because
+client event without room id
+n
+
+
+transaction_id
+string
+n
+
+
+STOP
