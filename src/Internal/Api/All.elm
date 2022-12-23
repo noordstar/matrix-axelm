@@ -5,6 +5,7 @@ module Internal.Api.All exposing (..)
 
 import Internal.Api.GetEvent.Main as GetEvent
 import Internal.Api.JoinedMembers.Main as JoinedMembers
+import Internal.Api.SendMessageEvent.Main as SendMessageEvent
 import Internal.Api.SendStateKey.Main as SendStateKey
 
 
@@ -25,6 +26,11 @@ joinedMembers : Versions -> JoinedMembers.JoinedMembersInput -> JoinedMembers.Jo
 joinedMembers =
     JoinedMembers.joinedMembers
 
+{-| Send a message event to a room.
+-}
+sendMessageEvent : Versions -> SendMessageEvent.SendMessageEventInput -> SendMessageEvent.SendMessageEventOutput
+sendMessageEvent =
+    SendMessageEvent.sendMessageEvent
 
 {-| Send a state event to a room.
 -}
