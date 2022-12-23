@@ -5,6 +5,7 @@ module Internal.Api.All exposing (..)
 
 import Internal.Api.GetEvent.Main as GetEvent
 import Internal.Api.JoinedMembers.Main as JoinedMembers
+import Internal.Api.SendStateKey.Main as SendStateKey
 
 
 type alias Versions =
@@ -23,3 +24,10 @@ getEvent =
 joinedMembers : Versions -> JoinedMembers.JoinedMembersInput -> JoinedMembers.JoinedMembersOutput
 joinedMembers =
     JoinedMembers.joinedMembers
+
+
+{-| Send a state event to a room.
+-}
+sendStateEvent : Versions -> SendStateKey.SendStateKeyInput -> SendStateKey.SendStateKeyOutput
+sendStateEvent =
+    SendStateKey.sendStateKey
