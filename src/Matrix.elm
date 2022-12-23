@@ -56,11 +56,10 @@ type alias Updater msg =
 
 
 {-| Not all functions may return a successful response in all cases.
-If the Matrix response has a chance to fail, it will use a `Response msg` tag,
-which either returns the `Updater` type or returns a `String` containing the error description.
+If the Matrix response has a chance to fail, it will use a `Response -> msg` tag,
+which either returns a succesful updater function or an error message.
 -}
-type alias Response msg =
-    Result String (Credentials -> Credentials) -> msg
+type alias Response = Result String (Credentials -> Credentials)
 
 
 {-| Get the latest changes from the Matrix homeserver.
