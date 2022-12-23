@@ -9,14 +9,14 @@ type alias FinalPackage in out =
     , getEvent : String -> in -> Task X.Error out
     }
 
-type alias GetEventVersion pIn pOut cIn cOut =
+type alias SingleVersion pIn pOut cIn cOut =
     { version : String
     , downcast : cIn -> pIn
     , current : cIn -> Task X.Error cOut
     , upcast : pOut -> cOut
     }
 
-firstVersion : GetEventVersion () () in out -> FinalPackage in out
+firstVersion : SingleVersion () () in out -> FinalPackage in out
 firstVersion packet =
     { supportedVersions = [packet.version]
     , getEvent =
@@ -28,7 +28,7 @@ firstVersion packet =
         )
     }
 
-updateWith : GetEventVersion pIn pOut in out -> FinalPackage pIn pOut -> FinalPackage in out
+updateWith : SingleVersion pIn pOut in out -> FinalPackage pIn pOut -> FinalPackage in out
 updateWith packet oldFinal =
     { supportedVersions = packet.version :: oldFinal.supportedVersions
     , getEvent =

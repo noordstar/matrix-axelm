@@ -9,7 +9,7 @@ import Internal.Api.GetEvent.V1_5.Upcast as U
 import Internal.Api.VersionControl as V
 
 
-packet : V.GetEventVersion Api.GetEventInputV1 PO.OldBlindEvent Api.GetEventInputV1 O.OldBlindEvent
+packet : V.SingleVersion Api.GetEventInputV1 PO.OldBlindEvent Api.GetEventInputV1 O.OldBlindEvent
 packet =
     { version = "v1.5"
     , downcast = identity

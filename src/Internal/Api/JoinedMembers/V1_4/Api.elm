@@ -9,7 +9,7 @@ import Internal.Api.JoinedMembers.V1_4.Upcast as U
 import Internal.Api.VersionControl as V
 
 
-packet : V.GetEventVersion Api.JoinedMembersInputV1 PO.RoomMemberList Api.JoinedMembersInputV1 O.RoomMemberList
+packet : V.SingleVersion Api.JoinedMembersInputV1 PO.RoomMemberList Api.JoinedMembersInputV1 O.RoomMemberList
 packet =
     { version = "v1.4"
     , downcast = identity

@@ -8,7 +8,7 @@ import Internal.Api.GetEvent.V1_1.Upcast as U
 import Internal.Api.VersionControl as V
 
 
-packet : V.GetEventVersion () () Api.GetEventInputV1 O.BlindEvent
+packet : V.SingleVersion () () Api.GetEventInputV1 O.BlindEvent
 packet =
     { version = "v1.1"
     , downcast = \_ -> ()
