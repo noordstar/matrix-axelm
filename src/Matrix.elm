@@ -59,7 +59,8 @@ type alias Updater msg =
 If the Matrix response has a chance to fail, it will use a `Response -> msg` tag,
 which either returns a succesful updater function or an error message.
 -}
-type alias Response = Result String (Credentials -> Credentials)
+type alias Response =
+    Result String (Credentials -> Credentials)
 
 
 {-| Get the latest changes from the Matrix homeserver.
@@ -68,6 +69,6 @@ The Matrix API has a `/sync` endpoint that basically says _"give me an update on
 This command will reach that endpoint and make sure all the latest data has been retrieved.
 
 -}
-syncCredentials : Response msg -> Credentials -> Cmd msg
+syncCredentials : (Response -> msg) -> Credentials -> Cmd msg
 syncCredentials =
     Internal.Credentials.sync
