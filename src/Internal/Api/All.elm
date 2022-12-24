@@ -7,6 +7,7 @@ import Internal.Api.GetEvent.Main as GetEvent
 import Internal.Api.JoinedMembers.Main as JoinedMembers
 import Internal.Api.SendMessageEvent.Main as SendMessageEvent
 import Internal.Api.SendStateKey.Main as SendStateKey
+import Internal.Api.Sync.Main as Sync
 
 
 type alias Versions =
@@ -26,14 +27,22 @@ joinedMembers : Versions -> JoinedMembers.JoinedMembersInput -> JoinedMembers.Jo
 joinedMembers =
     JoinedMembers.joinedMembers
 
+
 {-| Send a message event to a room.
 -}
 sendMessageEvent : Versions -> SendMessageEvent.SendMessageEventInput -> SendMessageEvent.SendMessageEventOutput
 sendMessageEvent =
     SendMessageEvent.sendMessageEvent
 
+
 {-| Send a state event to a room.
 -}
 sendStateEvent : Versions -> SendStateKey.SendStateKeyInput -> SendStateKey.SendStateKeyOutput
 sendStateEvent =
     SendStateKey.sendStateKey
+
+{-| Sync the client
+-}
+sync : Versions -> Sync.SyncInput -> Sync.SyncOutput
+sync =
+    Sync.sync
