@@ -17,6 +17,7 @@ The function also returns Nothing if the field exists but it is null.
 opField : String -> D.Decoder a -> D.Decoder (Maybe a)
 opField fieldName decoder =
     D.value
+        |> D.field fieldName
         |> D.maybe
         |> D.andThen
             (\v ->
@@ -26,11 +27,11 @@ opField fieldName decoder =
                             [ D.null Nothing
                             , D.map Just decoder
                             ]
+                        |> D.field fieldName
 
                     Nothing ->
                         D.succeed Nothing
             )
-        |> D.field fieldName
 
 
 {-| Add an optional field decoder. If the field is not given, the decoder will

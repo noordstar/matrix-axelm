@@ -4,9 +4,9 @@ import Internal.Values.Exceptions as X
 import Task exposing (Task)
 
 
-type alias FinalPackage in out =
+type alias FinalPackage vin vout =
     { supportedVersions : List String
-    , getEvent : String -> in -> Task X.Error out
+    , getEvent : String -> vin -> Task X.Error vout
     }
 
 type alias SingleVersion pIn pOut cIn cOut =
@@ -16,7 +16,7 @@ type alias SingleVersion pIn pOut cIn cOut =
     , upcast : pOut -> cOut
     }
 
-firstVersion : SingleVersion () () in out -> FinalPackage in out
+firstVersion : SingleVersion () () vin vout -> FinalPackage vin vout
 firstVersion packet =
     { supportedVersions = [packet.version]
     , getEvent =
@@ -28,7 +28,7 @@ firstVersion packet =
         )
     }
 
-updateWith : SingleVersion pIn pOut in out -> FinalPackage pIn pOut -> FinalPackage in out
+updateWith : SingleVersion pIn pOut vin vout -> FinalPackage pIn pOut -> FinalPackage vin vout
 updateWith packet oldFinal =
     { supportedVersions = packet.version :: oldFinal.supportedVersions
     , getEvent =
@@ -40,7 +40,7 @@ updateWith packet oldFinal =
         )
     }
 
-toFunction : FinalPackage in out -> List String -> in -> Task X.Error out
+toFunction : FinalPackage vin vout -> List String -> vin -> Task X.Error vout
 toFunction final versions x =
     let
         bestVersion : Maybe String
