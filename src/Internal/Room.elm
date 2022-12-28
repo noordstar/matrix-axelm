@@ -53,6 +53,7 @@ createNewRoom nextBatch ( roomId, joinedRoom ) =
                                                 |> List.map (Event.fromClientEventWithoutRoomId roomId)
                                         }
                                     ]
+
                                 else
                                     []
 

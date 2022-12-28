@@ -12,13 +12,16 @@ import Internal.Values.Names exposing (Response)
 import Task exposing (Task)
 import Time
 
+
 fromAccessToken : String -> String -> Credentials
 fromAccessToken =
     Credentials.fromAccessToken
 
+
 withUsernameAndPassword : String -> String -> String -> Credentials
 withUsernameAndPassword =
     Credentials.withUsernameAndPassword
+
 
 sync : (Response -> msg) -> Credentials -> Cmd msg
 sync onResponse ((Credentials c) as credentials) =
@@ -36,30 +39,30 @@ sync onResponse ((Credentials c) as credentials) =
                                     | accountData = sy.accountData
                                     , mostRecentSync =
                                         sy.rooms
-                                        |> Maybe.map .join
-                                        |> Maybe.withDefault Dict.empty
-                                        |> Dict.toList
-                                        |> List.filterMap
-                                            (\(roomId, event) ->
-                                                event.timeline
-                                                |> Maybe.map (\t -> (roomId, t.events))
-                                            )
-                                        |> List.map
-                                            (\(roomId, events) ->
-                                                events
-                                                |> List.map (Event.fromClientEventWithoutRoomId roomId)
-                                            )
-                                        |> List.concat
-                                        |> List.sortBy
-                                            (\(Event event) ->
-                                                ( event.originServerTs
-                                                    |> Maybe.map Time.posixToMillis
-                                                    |> Maybe.withDefault 0
-                                                , event.unsigned.age
-                                                    |> Maybe.withDefault 0
-                                                    |> (*) -1
+                                            |> Maybe.map .join
+                                            |> Maybe.withDefault Dict.empty
+                                            |> Dict.toList
+                                            |> List.filterMap
+                                                (\( roomId, event ) ->
+                                                    event.timeline
+                                                        |> Maybe.map (\t -> ( roomId, t.events ))
                                                 )
-                                            )
+                                            |> List.map
+                                                (\( roomId, events ) ->
+                                                    events
+                                                        |> List.map (Event.fromClientEventWithoutRoomId roomId)
+                                                )
+                                            |> List.concat
+                                            |> List.sortBy
+                                                (\(Event event) ->
+                                                    ( event.originServerTs
+                                                        |> Maybe.map Time.posixToMillis
+                                                        |> Maybe.withDefault 0
+                                                    , event.unsigned.age
+                                                        |> Maybe.withDefault 0
+                                                        |> (*) -1
+                                                    )
+                                                )
                                     , nextBatch = Just sy.nextBatch
                                     , presence = sy.presence
                                     , rooms =

@@ -2,8 +2,8 @@ module Internal.Values.Credentials exposing (..)
 
 import Dict
 import Internal.Api.Sync.V1_5.Objects as O
-import Internal.Values.Room as Room exposing (Room)
 import Internal.Values.Event as Event exposing (Event)
+import Internal.Values.Room as Room exposing (Room)
 
 
 type Credentials
@@ -72,3 +72,10 @@ withUsernameAndPassword baseUrl username password =
                     }
             , baseUrl = baseUrl
         }
+
+
+{-| Get the new events that were received at the most recent sync.
+-}
+mostRecentSync : Credentials -> List Event
+mostRecentSync (Credentials cred) =
+    cred.mostRecentSync

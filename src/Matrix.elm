@@ -19,9 +19,10 @@ Don't worry, the `Credentials` have got you covered. You will need to update you
 @docs Updater, Response, syncCredentials
 
 -}
+
+import Internal.Credentials
 import Internal.Values.Credentials
 import Internal.Values.Names
-import Internal.Credentials
 
 
 {-| The Matrix API requires the user to keep track of lots of tokens:
