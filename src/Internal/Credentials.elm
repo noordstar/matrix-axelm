@@ -1,12 +1,24 @@
 module Internal.Credentials exposing (..)
 
+import Dict
 import Internal.Api.All as Api
 import Internal.Api.Sync.V1_5.Objects as O
-import Internal.Values.Credentials exposing (AccessToken(..), Credentials(..))
+import Internal.Event as Event
+import Internal.Room as Room
+import Internal.Values.Credentials as Credentials exposing (AccessToken(..), Credentials(..))
+import Internal.Values.Event exposing (Event(..))
 import Internal.Values.Exceptions as X
 import Internal.Values.Names exposing (Response)
 import Task exposing (Task)
+import Time
 
+fromAccessToken : String -> String -> Credentials
+fromAccessToken =
+    Credentials.fromAccessToken
+
+withUsernameAndPassword : String -> String -> String -> Credentials
+withUsernameAndPassword =
+    Credentials.withUsernameAndPassword
 
 sync : (Response -> msg) -> Credentials -> Cmd msg
 sync onResponse ((Credentials c) as credentials) =
@@ -22,8 +34,46 @@ sync onResponse ((Credentials c) as credentials) =
                             Credentials
                                 { cred
                                     | accountData = sy.accountData
+                                    , mostRecentSync =
+                                        sy.rooms
+                                        |> Maybe.map .join
+                                        |> Maybe.withDefault Dict.empty
+                                        |> Dict.toList
+                                        |> List.filterMap
+                                            (\(roomId, event) ->
+                                                event.timeline
+                                                |> Maybe.map (\t -> (roomId, t.events))
+                                            )
+                                        |> List.map
+                                            (\(roomId, events) ->
+                                                events
+                                                |> List.map (Event.fromClientEventWithoutRoomId roomId)
+                                            )
+                                        |> List.concat
+                                        |> List.sortBy
+                                            (\(Event event) ->
+                                                ( event.originServerTs
+                                                    |> Maybe.map Time.posixToMillis
+                                                    |> Maybe.withDefault 0
+                                                , event.unsigned.age
+                                                    |> Maybe.withDefault 0
+                                                    |> (*) -1
+                                                )
+                                            )
                                     , nextBatch = Just sy.nextBatch
                                     , presence = sy.presence
+                                    , rooms =
+                                        sy.rooms
+                                            |> Maybe.map .join
+                                            |> Maybe.withDefault Dict.empty
+                                            |> Dict.map
+                                                (\roomId joinedRoom ->
+                                                    Room.updateRoomWithSync
+                                                        sy.nextBatch
+                                                        ( roomId, joinedRoom )
+                                                        (Dict.get roomId cred.rooms)
+                                                )
+                                            |> (\x -> Dict.union x cred.rooms)
                                 }
                         )
                             |> Ok

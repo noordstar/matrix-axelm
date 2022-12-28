@@ -1,142 +1,108 @@
 module Internal.Room exposing (..)
 
+import Dict
 import Internal.Api.Sync.V1_5.Objects as O
 import Internal.Event as Event
 import Internal.Values.Event as Event exposing (Event(..))
 import Internal.Values.Room as Room exposing (Room(..))
-import Dict
+import Internal.Values.StateManager as S
 
-createNewRoom : String -> O.JoinedRoom -> Room
-createNewRoom roomId joinedRoom =
-    updateRoom
-        joinedRoom
-        ( Room
-            { accountData = joinedRoom.accountData
-            , ephemeral = joinedRoom.ephemeral
-            , events = Dict.empty
-            , startOfTime = 
-                List.map
-                    (Event.fromClientEventWithoutRoomId roomId) 
-                    joinedRoom.state
-            , timeline = []
-            }
-        )
 
-updateRoom : O.JoinedRoom -> Room -> Room
-updateRoom joinedRoom (Room room) =
-    let
-        stateAtStart : List Event
-        stateAtStart =
-            List.map (Event.fromClientEventWithoutRoomId roomId) joinedRoom.state
-        
-        timelineEvents : List Event
-        timelineEvents =
+updateRoomWithSync : String -> ( String, O.JoinedRoom ) -> Maybe Room -> Room
+updateRoomWithSync nextBatch ( roomId, joinedRoom ) maybeRoom =
+    case maybeRoom of
+        Just r ->
+            updateRoom nextBatch joinedRoom r
+
+        Nothing ->
+            createNewRoom nextBatch ( roomId, joinedRoom )
+
+
+createNewRoom : String -> ( String, O.JoinedRoom ) -> Room
+createNewRoom nextBatch ( roomId, joinedRoom ) =
+    Room
+        { accountData = S.toEventManager joinedRoom.accountData
+        , ephemeral = joinedRoom.ephemeral
+        , events =
             joinedRoom.timeline
-            |> Maybe.map .events
-            |> Maybe.withDefault []
-            |> List.map (Event.fromClientEventWithoutRoomId roomId)
-    in
-        Room
-            { accountData = joinedRoom.accountData
-            , ephemeral = joinedRoom.ephemeral
-            , events =
-                room.events
-                |> updateEventsWith stateAtStart
-                |> updateEventsWith timelineEvents
-            , startOfTime = room.startOfTime
-            , timeline =
-                room.timeline
-                |> extendTimeline timelineEvents
-            }
-
-updateEventsWith : List Event -> Dict String Events -> Dict String Events
-updateEventsWith events knownEvents =
-    events
-    |> List.filterMap
-        (\(Event event) -> Maybe.map (\eId -> (eId, Event event) event.eventId))
-    |> Dict.fromList
-    |> (\d -> Dict.union d knownEvents)
-
-extendTimeline : String -> O.Timeline -> List Event -> List Room.TimelinePiece -> List Room.TimelinePiece
-extendTimeline nextBatch timelineDelta stateDeltaAtStart timeline =
-    timelineDelta
-    |> .events
-    |> List.map
-        (\(Event event) ->
-            case event.eventId of
-                Just eId ->
-                    Room.TimelineEvent eId
-                
-                Nothing ->
-                    Room.BlindEvent
-                        { content = event.content
-                        , contentType = event.contentType
-                        }
-        )
-    |> (\events -> 
-        (++)
-            events
-            [ Room.BatchBorder { sinceParam = nextBatch, deltaState = [] }]
-    )
-    |> (\newEvents ->
-        case List.reverse timeline of
-            [] ->
-                case timelineDelta.prevBatch of
-                    Just p ->
-                        ( Room.BatchBorder
-                            { sinceParam = p, deltaState = stateDeltaAtStart }
-                        ) :: newEvents
-                    Nothing ->
-                        newEvents
-            
-            (Room.BatchBorder data) :: tail ->
-                case data.prevBatch of
-                    Nothing ->
-                        newEvents
-                    
-                    Just p ->
-                        case timelineDelta.prevBatch of
-                            Just cp ->
-                                if p == cp then
-                                    -- Just add
+                |> Maybe.map .events
+                |> Maybe.withDefault []
+                |> (++) joinedRoom.state
+                |> List.map (Event.fromClientEventWithoutRoomId roomId)
+                |> List.filterMap
+                    (\(Event event) ->
+                        Maybe.map (\eId -> ( eId, Event event )) event.eventId
+                    )
+                |> Dict.fromList
+        , roomId = roomId
+        , startOfTime =
+            joinedRoom.state
+                |> List.map (Event.fromClientEventWithoutRoomId roomId)
+                |> S.toRoomState
+        , timeline =
+            (joinedRoom.timeline
+                |> Maybe.map
+                    (\timeline ->
+                        (case timeline.prevBatch of
+                            Just p ->
+                                if timeline.limited then
+                                    [ Room.BatchBorder
+                                        { sinceParam = p
+                                        , deltaState =
+                                            joinedRoom.state
+                                                |> List.map (Event.fromClientEventWithoutRoomId roomId)
+                                        }
+                                    ]
                                 else
-                                    (++)
-                                        (timeline ++ [ Room.Gap { from = p, to = cp }])
-                                        ((Room.BatchBorder {}) :: newEvents)
-                            
+                                    []
+
                             Nothing ->
-                                -- Just add
+                                []
+                        )
+                            ++ (timeline.events
+                                    |> List.map (Event.fromClientEventWithoutRoomId roomId)
+                                    |> List.map
+                                        (\(Event event) ->
+                                            case event.eventId of
+                                                Just eId ->
+                                                    Room.TimelineEvent eId
 
-    )
+                                                Nothing ->
+                                                    Room.BlindEvent { content = event.content, contentType = event.contentType }
+                                        )
+                               )
+                    )
+                |> Maybe.withDefault []
+            )
+                ++ [ Room.BatchBorder { sinceParam = nextBatch, deltaState = [] } ]
+        }
 
 
-extendTimeline : String -> O.Timeline -> List Room.TimelinePiece -> List Room.TimelinePiece
-extendTimeline nextBatch events timeline =
-    events
-    |> List.map
-        (\(Event event) ->
-            case event.eventId of
-                Just eId ->
-                    Room.TimelineEvent eId
+updateRoom : String -> O.JoinedRoom -> Room -> Room
+updateRoom nextBatch joinedRoom (Room room) =
+    let
+        newRoom =
+            ( room.roomId, joinedRoom )
+                |> createNewRoom nextBatch
+                |> (\(Room r) -> r)
+    in
+    Room
+        { accountData =
+            room.accountData
+                |> S.updateEventManagerWith newRoom.accountData
+        , ephemeral = newRoom.ephemeral
+        , events = Dict.union newRoom.events room.events
+        , roomId = room.roomId
+        , startOfTime = room.startOfTime
+        , timeline =
+            case ( List.reverse room.timeline, newRoom.timeline ) of
+                ( (Room.BatchBorder data1) :: _, (Room.BatchBorder data2) :: tail ) ->
+                    if data1.sinceParam == data2.sinceParam then
+                        room.timeline ++ tail
 
-                Nothing ->
-                    Room.BlindEvent
-                        { content = event.content
-                        , contentType = event.contentType
-                        }
-        )
-    |> (\timelinePart ->
-        case List.reverse timeline of
-            [] ->
-                (++)
-                    timelinePart
-                    [ Room.BatchBorder 
-                        { sinceParam = nextBatch, deltaState = [] } 
-                    ]
-            
-            (Room.BatchBorder data) :: tail ->
-                (++)
-                    timeline
-                    (extendTimeline nextBatch events [])
-    )
+                    else
+                        (room.timeline ++ [ Room.Gap { from = data1.sinceParam, to = data2.sinceParam } ]) ++ newRoom.timeline
 
+                ( _, _ ) ->
+                    room.timeline ++ newRoom.timeline
+        }

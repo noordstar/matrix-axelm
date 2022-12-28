@@ -3,15 +3,17 @@ module Internal.Values.Room exposing (..)
 import Dict
 import Internal.Api.Sync.V1_5.Objects as O
 import Internal.Values.Event as Ev
+import Internal.Values.StateManager as S
 import Json.Encode as E
 
 
 type Room
     = Room
-        { accountData : List O.BlindEvent
+        { accountData : S.EventManager
         , ephemeral : List O.BlindEvent
         , events : Dict.Dict String Ev.Event
-        , startOfTime : List Ev.Event
+        , roomId : String
+        , startOfTime : S.StateEventManager
         , timeline : List TimelinePiece
         }
 

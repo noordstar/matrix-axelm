@@ -3,6 +3,7 @@ module Internal.Event exposing (..)
 import Internal.Api.Sync.V1_5.Objects as O
 import Internal.Values.Event as Event exposing (Event(..))
 
+
 fromClientEventWithoutRoomId : String -> O.ClientEventWithoutRoomId -> Event
 fromClientEventWithoutRoomId roomId event =
     Event
@@ -30,6 +31,7 @@ fromClientEventWithoutRoomId roomId event =
                     }
         }
 
+
 fromOldBlindEvent : String -> O.OldBlindEvent -> Event
 fromOldBlindEvent roomId event =
     Event
@@ -40,7 +42,7 @@ fromOldBlindEvent roomId event =
         , sender = event.sender
         , stateKey = event.stateKey
         , contentType = event.contentType
-        , unsigned = 
+        , unsigned =
             case event.unsigned of
                 Just (O.UnsignedData data) ->
                     { age = data.age
@@ -56,4 +58,3 @@ fromOldBlindEvent roomId event =
                     , transactionId = Nothing
                     }
         }
-

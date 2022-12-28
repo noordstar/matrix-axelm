@@ -19,7 +19,8 @@ Don't worry, the `Credentials` have got you covered. You will need to update you
 @docs Updater, Response, syncCredentials
 
 -}
-
+import Internal.Values.Credentials
+import Internal.Values.Names
 import Internal.Credentials
 
 
@@ -36,7 +37,7 @@ You can use the module Matrix.Credentials to initialize your credentials, or loa
 
 -}
 type alias Credentials =
-    Internal.Credentials.Credentials
+    Internal.Values.Credentials.Credentials
 
 
 {-| Some functions render a `Cmd msg` that ultimately results in an update function for your credentials.
@@ -60,7 +61,7 @@ If the Matrix response has a chance to fail, it will use a `Response -> msg` tag
 which either returns a succesful updater function or an error message.
 -}
 type alias Response =
-    Result String (Credentials -> Credentials)
+    Internal.Values.Names.Response
 
 
 {-| Get the latest changes from the Matrix homeserver.

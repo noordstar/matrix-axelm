@@ -3,6 +3,7 @@ module Internal.Values.Credentials exposing (..)
 import Dict
 import Internal.Api.Sync.V1_5.Objects as O
 import Internal.Values.Room as Room exposing (Room)
+import Internal.Values.Event as Event exposing (Event)
 
 
 type Credentials
@@ -13,13 +14,14 @@ type alias CredentialsRecord =
     { accessToken : AccessToken
     , accountData : List O.BlindEvent
     , baseUrl : String
+    , invitations : Dict.Dict String ()
+    , mostRecentSync : List Event
     , nextBatch : Maybe String
+    , knockedRooms : Dict.Dict String ()
+    , leftRooms : Dict.Dict String ()
     , presence : List O.BlindEvent
     , rooms : Dict.Dict String Room
     , supportedVersions : List String
-    , invitations : Dict.Dict String ()
-    , knockedRooms : Dict.Dict String ()
-    , leftRooms : Dict.Dict String ()
     }
 
 
@@ -31,10 +33,11 @@ defaultCredentials =
     , invitations = Dict.empty
     , knockedRooms = Dict.empty
     , leftRooms = Dict.empty
+    , mostRecentSync = []
     , nextBatch = Nothing
     , presence = []
     , rooms = Dict.empty
-    , supportedVersions = []
+    , supportedVersions = [ "v1.1", "v1.2", "v1.3", "v1.4", "v1.5" ]
     }
 
 
