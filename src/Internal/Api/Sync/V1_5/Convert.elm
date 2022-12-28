@@ -42,6 +42,7 @@ convertJoinedRoom room =
     , summary = room.summary
     , timeline = Maybe.map convertTimeline room.timeline
     , unreadNotifications = room.unreadNotifications
+    , unreadThreadNotifications = room.unreadThreadNotifications
     }
 
 

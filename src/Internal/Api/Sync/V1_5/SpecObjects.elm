@@ -15,6 +15,7 @@ module Internal.Api.Sync.V1_5.SpecObjects exposing
     , State
     , StrippedStateEvent
     , Sync
+    , ThreadNotificationCounts
     , Timeline
     , UnreadNotificationCounts
     , UnsignedData(..)
@@ -36,6 +37,7 @@ module Internal.Api.Sync.V1_5.SpecObjects exposing
     , encodeState
     , encodeStrippedStateEvent
     , encodeSync
+    , encodeThreadNotificationCounts
     , encodeTimeline
     , encodeUnreadNotificationCounts
     , encodeUnsignedData
@@ -53,6 +55,7 @@ module Internal.Api.Sync.V1_5.SpecObjects exposing
     , stateDecoder
     , strippedStateEventDecoder
     , syncDecoder
+    , threadNotificationCountsDecoder
     , timelineDecoder
     , unreadNotificationCountsDecoder
     , unsignedDataDecoder
@@ -60,7 +63,7 @@ module Internal.Api.Sync.V1_5.SpecObjects exposing
 
 {-| Automatically generated 'SpecObjects'
 
-Last generated at Unix time 1671842248
+Last generated at Unix time 1672061158
 
 -}
 
@@ -240,6 +243,7 @@ type alias JoinedRoom =
     , summary : Maybe RoomSummary
     , timeline : Maybe Timeline
     , unreadNotifications : Maybe UnreadNotificationCounts
+    , unreadThreadNotifications : Dict String ThreadNotificationCounts
     }
 
 
@@ -252,14 +256,15 @@ encodeJoinedRoom data =
         , ( "summary", Maybe.map encodeRoomSummary data.summary )
         , ( "timeline", Maybe.map encodeTimeline data.timeline )
         , ( "unread_notifications", Maybe.map encodeUnreadNotificationCounts data.unreadNotifications )
+        , ( "unread_thread_notifications", Just <| E.dict identity encodeThreadNotificationCounts data.unreadThreadNotifications )
         ]
 
 
 joinedRoomDecoder : D.Decoder JoinedRoom
 joinedRoomDecoder =
-    D.map6
-        (\a b c d e f ->
-            { accountData = a, ephemeral = b, state = c, summary = d, timeline = e, unreadNotifications = f }
+    D.map7
+        (\a b c d e f g ->
+            { accountData = a, ephemeral = b, state = c, summary = d, timeline = e, unreadNotifications = f, unreadThreadNotifications = g }
         )
         (opField "account_data" accountDataDecoder)
         (opField "ephemeral" ephemeralDecoder)
@@ -267,6 +272,7 @@ joinedRoomDecoder =
         (opField "summary" roomSummaryDecoder)
         (opField "timeline" timelineDecoder)
         (opField "unread_notifications" unreadNotificationCountsDecoder)
+        (opFieldWithDefault "unread_thread_notifications" Dict.empty (D.dict threadNotificationCountsDecoder))
 
 
 {-| Room that the user has knocked upon.
@@ -513,6 +519,32 @@ syncDecoder =
         (D.field "next_batch" D.string)
         (opField "presence" presenceDecoder)
         (opField "rooms" roomsDecoder)
+
+
+{-| Counts of unread notifications for a given thread.
+-}
+type alias ThreadNotificationCounts =
+    { highlightCount : Maybe Int
+    , notificationCount : Maybe Int
+    }
+
+
+encodeThreadNotificationCounts : ThreadNotificationCounts -> E.Value
+encodeThreadNotificationCounts data =
+    maybeObject
+        [ ( "highlight_count", Maybe.map E.int data.highlightCount )
+        , ( "notification_count", Maybe.map E.int data.notificationCount )
+        ]
+
+
+threadNotificationCountsDecoder : D.Decoder ThreadNotificationCounts
+threadNotificationCountsDecoder =
+    D.map2
+        (\a b ->
+            { highlightCount = a, notificationCount = b }
+        )
+        (opField "highlight_count" D.int)
+        (opField "notification_count" D.int)
 
 
 {-| The timeline of messages and state changes in a room.

@@ -6,6 +6,7 @@ module Internal.Values.Exceptions exposing (..)
 import Dict
 import Http
 import Internal.Tools.DecodeExtra exposing (opField)
+import Internal.Values.ErrorStrings as ES
 import Json.Decode as D
 import Json.Encode as E
 
@@ -33,10 +34,9 @@ input.
 -}
 type ClientError
     = ServerReturnsBadJSON String
-    | ServerDoesntFollowJSONSpec
-    | ServerDoesntReturnBaseURL
     | CouldntGetTimestamp
-    | InvalidInputAccordingToSpec String
+    | InsufficientCredentials String
+    | NotSupportedYet String
 
 
 {-| Potential error codes that the server may return. If the error is not a
@@ -195,3 +195,23 @@ errorDecoder name code decoder =
                 else
                     D.fail "Not the right errcode"
             )
+
+
+errorToString : Error -> String
+errorToString e =
+    case e of
+        UnsupportedVersion ->
+            ES.unsupportedVersion
+
+        SDKException (ServerReturnsBadJSON s) ->
+            ES.serverReturnsBadJSON s
+
+        SDKException CouldntGetTimestamp ->
+            ES.couldNotGetTimestamp
+
+        ServerException (M_FORBIDDEN data) ->
+            ES.serverSaysForbidden data.error
+
+        -- ServerError (M_UNKNOWN_TOKEN data) ->
+        _ ->
+            "ERROR NEEDS STRING"

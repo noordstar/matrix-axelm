@@ -39,7 +39,7 @@ module Internal.Api.Sync.V1_5.Objects exposing
 
 {-| Automatically generated 'Objects'
 
-Last generated at Unix time 1671842248
+Last generated at Unix time 1672061158
 
 -}
 
@@ -127,6 +127,7 @@ type alias JoinedRoom =
     , summary : Maybe RoomSummary
     , timeline : Maybe Timeline
     , unreadNotifications : Maybe UnreadNotificationCounts
+    , unreadThreadNotifications : Dict String UnreadNotificationCounts
     }
 
 
@@ -139,14 +140,15 @@ encodeJoinedRoom data =
         , ( "summary", Maybe.map encodeRoomSummary data.summary )
         , ( "timeline", Maybe.map encodeTimeline data.timeline )
         , ( "unread_notifications", Maybe.map encodeUnreadNotificationCounts data.unreadNotifications )
+        , ( "unread_thread_notifications", Just <| E.dict identity encodeUnreadNotificationCounts data.unreadThreadNotifications )
         ]
 
 
 joinedRoomDecoder : D.Decoder JoinedRoom
 joinedRoomDecoder =
-    D.map6
-        (\a b c d e f ->
-            { accountData = a, ephemeral = b, state = c, summary = d, timeline = e, unreadNotifications = f }
+    D.map7
+        (\a b c d e f g ->
+            { accountData = a, ephemeral = b, state = c, summary = d, timeline = e, unreadNotifications = f, unreadThreadNotifications = g }
         )
         (D.field "account_data" (D.list blindEventDecoder))
         (D.field "ephemeral" (D.list blindEventDecoder))
@@ -154,6 +156,7 @@ joinedRoomDecoder =
         (opField "summary" roomSummaryDecoder)
         (opField "timeline" timelineDecoder)
         (opField "unread_notifications" unreadNotificationCountsDecoder)
+        (D.field "unread_thread_notifications" (D.dict unreadNotificationCountsDecoder))
 
 
 {-| Room that the user has left.

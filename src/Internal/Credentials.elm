@@ -1,86 +1,65 @@
 module Internal.Credentials exposing (..)
 
-{-| Credentials type that manages all user data.
--}
+import Internal.Api.All as Api
+import Internal.Api.Sync.V1_5.Objects as O
+import Internal.Values.Credentials exposing (AccessToken(..), Credentials(..))
+import Internal.Values.Exceptions as X
+import Internal.Values.Names exposing (Response)
+import Task exposing (Task)
 
 
-type Credentials
-    = Credentials CredentialsRecord
-
-
-{-| Updater type that can update credentials.
--}
-type alias Updater msg =
-    (Credentials -> Credentials) -> msg
-
-
-{-| Updater type that either has an error string or can update credentials.
--}
-type alias Response =
-    Result String (Credentials -> Credentials)
-
-
-{-| Structure of the data stored in Credentials.
--}
-type alias CredentialsRecord =
-    { accessToken : AccessToken
-    , baseUrl : String
-    , nextBatch : Maybe String
-    }
-
-
-{-| Helper function to create "default" settings
--}
-defaultCredentials : CredentialsRecord
-defaultCredentials =
-    { accessToken = NoValidDetails
-    , baseUrl = ""
-    , nextBatch = Nothing
-    }
-
-
-type AccessToken
-    = Token String
-    | NoValidDetails
-    | UsernameAndPassword { username : String, password : String, accessToken : Maybe String }
-
-
-{-| Create new credentials from an access token.
--}
-fromAccessToken : String -> String -> Credentials
-fromAccessToken baseUrl accessToken =
-    Credentials
-        { defaultCredentials
-            | accessToken = Token accessToken
-            , baseUrl = baseUrl
-        }
-
-
-withUsernameAndPassword : String -> String -> String -> Credentials
-withUsernameAndPassword baseUrl username password =
-    Credentials
-        { defaultCredentials
-            | accessToken =
-                UsernameAndPassword
-                    { username = username
-                    , password = password
-                    , accessToken = Nothing
-                    }
-            , baseUrl = baseUrl
-        }
-
-
-{-| Get the latest /sync endpoint
--}
 sync : (Response -> msg) -> Credentials -> Cmd msg
-sync _ (Credentials _) =
-    Cmd.none
+sync onResponse ((Credentials c) as credentials) =
+    syncTask credentials
+        |> Task.attempt
+            (\result ->
+                case result of
+                    Err e ->
+                        onResponse (Err e)
+
+                    Ok sy ->
+                        (\(Credentials cred) ->
+                            Credentials
+                                { cred
+                                    | accountData = sy.accountData
+                                    , nextBatch = Just sy.nextBatch
+                                    , presence = sy.presence
+                                }
+                        )
+                            |> Ok
+                            |> onResponse
+            )
 
 
+syncTask : Credentials -> Task X.Error O.Sync
+syncTask (Credentials cred) =
+    case cred.accessToken of
+        NoValidDetails ->
+            "Cannot sync while no login/access token have been given."
+                |> X.InsufficientCredentials
+                |> X.SDKException
+                |> Task.fail
 
--- TODO: Not implemented yet
--- {-| Get a list of rooms the user has joined.
--- -}
--- joinedRooms : Credentials -> List O.Room
--- joinedRooms (Credentials c) =
---     []
+        Token token ->
+            Api.sync
+                cred.supportedVersions
+                { accessToken = token
+                , baseUrl = cred.baseUrl
+                , filter = Nothing
+                , fullState = Nothing
+                , setPresence = Nothing
+                , since = cred.nextBatch
+                , timeout = Just 10000
+                }
+
+        UsernameAndPassword { username, password, accessToken } ->
+            case accessToken of
+                Just token ->
+                    syncTask (Credentials { cred | accessToken = Token token })
+
+                Nothing ->
+                    -- TODO: Login before syncing
+                    "Credentials need to log in first"
+                        |> X.NotSupportedYet
+                        |> X.SDKException
+                        |> Task.fail

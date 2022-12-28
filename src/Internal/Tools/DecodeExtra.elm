@@ -27,7 +27,7 @@ opField fieldName decoder =
                             [ D.null Nothing
                             , D.map Just decoder
                             ]
-                        |> D.field fieldName
+                            |> D.field fieldName
 
                     Nothing ->
                         D.succeed Nothing

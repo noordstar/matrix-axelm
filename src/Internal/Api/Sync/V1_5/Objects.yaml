@@ -76,6 +76,9 @@ objects:
         type: Timeline
       unread_notifications:
         type: UnreadNotificationCounts
+      unread_thread_notifications:
+        type: "{UnreadNotificationCounts}"
+        required: true
   ClientEventWithoutRoomId:
     description: Client event that has all data except the room id.
     fields:

@@ -31,6 +31,7 @@ upcastJoinedRoom room =
     , summary = room.summary
     , timeline = Maybe.map upcastTimeline room.timeline
     , unreadNotifications = room.unreadNotifications
+    , unreadThreadNotifications = room.unreadThreadNotifications
     }
 
 
