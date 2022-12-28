@@ -1,4 +1,4 @@
-module Internal.Api.Versions.V_all.SpecObjects exposing
+module Internal.Api.Versions.SpecObjects exposing
     ( Versions
     , encodeVersions
     , versionsDecoder

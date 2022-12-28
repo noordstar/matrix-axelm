@@ -1,4 +1,4 @@
-module Internal.Api.Versions.V_all.Objects exposing (..)
+module Internal.Api.Versions.Objects exposing (..)
 
 import Dict exposing (Dict)
 import Set exposing (Set)

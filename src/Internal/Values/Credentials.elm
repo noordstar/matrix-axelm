@@ -79,3 +79,10 @@ withUsernameAndPassword baseUrl username password =
 mostRecentSync : Credentials -> List Event
 mostRecentSync (Credentials cred) =
     cred.mostRecentSync
+
+
+{-| Get a room by its room id
+-}
+getRoomById : String -> Credentials -> Maybe Room
+getRoomById roomId (Credentials cred) =
+    Dict.get roomId cred.rooms
