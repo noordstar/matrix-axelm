@@ -9,6 +9,7 @@ import Internal.Values.Credentials as Credentials exposing (AccessToken(..), Cre
 import Internal.Values.Event exposing (Event(..))
 import Internal.Values.Exceptions as X
 import Internal.Values.Names exposing (Response)
+import Internal.Values.Room exposing (Room)
 import Task exposing (Task)
 import Time
 
@@ -30,7 +31,10 @@ sync onResponse ((Credentials c) as credentials) =
             (\result ->
                 case result of
                     Err e ->
-                        onResponse (Err e)
+                        e
+                            |> X.errorToString
+                            |> Err
+                            |> onResponse
 
                     Ok sy ->
                         (\(Credentials cred) ->
@@ -116,3 +120,13 @@ syncTask (Credentials cred) =
                         |> X.NotSupportedYet
                         |> X.SDKException
                         |> Task.fail
+
+
+getRooms : Credentials -> List Room
+getRooms (Credentials cred) =
+    Dict.values cred.rooms
+
+
+getRoomById : String -> Credentials -> Maybe Room
+getRoomById roomId (Credentials cred) =
+    Dict.get roomId cred.rooms

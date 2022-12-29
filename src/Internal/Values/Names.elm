@@ -9,7 +9,7 @@ type alias Updater msg =
 
 
 type alias Response =
-    Result X.Error (C.Credentials -> C.Credentials)
+    Result String (C.Credentials -> C.Credentials)
 
 
 type SharedInfo info msg
