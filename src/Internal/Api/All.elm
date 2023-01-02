@@ -8,6 +8,7 @@ import Internal.Api.JoinedMembers.Main as JoinedMembers
 import Internal.Api.SendMessageEvent.Main as SendMessageEvent
 import Internal.Api.SendStateKey.Main as SendStateKey
 import Internal.Api.Sync.Main as Sync
+import Internal.Api.Versions.Main as Versions
 
 
 type alias Versions =
@@ -19,6 +20,12 @@ type alias Versions =
 getEvent : Versions -> GetEvent.EventInput -> GetEvent.EventOutput
 getEvent =
     GetEvent.getEvent
+
+{-| Get all versions that both the homeserver and this SDK support.
+-}
+getVersions : Versions.VersionsInput -> Versions.VersionsOutput
+getVersions =
+    Versions.getVersions
 
 
 {-| Get information on all users who joined a room.
