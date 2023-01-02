@@ -261,8 +261,10 @@ def main(in_file, out_file):
         
         @property
         def elm_name(self):
-            return self.name
-            # return ''.join([word.capitalize() for word in self.name.split(' ')])
+            if '.' not in self.name:
+                return self.name
+            else:
+                return ''.join([word.capitalize() for word in self.name.split('.')])
         
         @property
         def lowercase_elm_name(self):

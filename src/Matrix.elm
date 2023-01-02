@@ -2,7 +2,8 @@ module Matrix exposing
     ( Credentials
     , fromAccessToken, withUsernameAndPassword
     , getRooms, getRoomById
-    , syncCredentials, Response, Updater
+    , syncCredentials, Response, mostRecentSync
+    , Updater
     )
 
 {-| The Matrix module takes care of all high-level communication.
@@ -41,12 +42,18 @@ Every now and then, the Matrix homeserver sends new information that you need to
 Don't worry, the [Credentials](#Credentials) type has got you covered.
 You will need to update your credentials, though.
 
-@docs syncCredentials, Response, Updater
+@docs syncCredentials, Response, mostRecentSync
+
+
+## Updating
+
+@docs Updater
 
 -}
 
 import Internal.Credentials
 import Internal.Values.Credentials
+import Internal.Values.Event exposing (Event)
 import Internal.Values.Exceptions as X
 import Internal.Values.Room exposing (Room)
 import Internal.Values.SpecEnums exposing (LoginType(..))
@@ -180,10 +187,25 @@ syncCredentials =
     Internal.Credentials.sync
 
 
+{-| Get the events that were found at the latest sync.
+
+**Note:** there are more efficient ways to view the most recent events.
+This function is meant to help you gain insight on which Matrix rooms are the most active.
+
+-}
+mostRecentSync : Credentials -> List Event
+mostRecentSync =
+    Internal.Credentials.mostRecentSync
+
+
 {-| Get all rooms that the member has joined.
 
 This room list is relative to the latest sync, so it might not always be 100% accurate.
 Some moderator might have kicked the user, or you might have accepted an invite and not received the room status.
+
+    credentials
+        |> getRooms
+        |> List.map Room.getRoomId
 
 -}
 getRooms : Credentials -> List Room

@@ -5,9 +5,14 @@ import Internal.Api.Versions.Objects as O
 import Internal.Values.Exceptions as X
 import Task exposing (Task)
 
-type alias VersionsInput = String
 
-type alias VersionsOutput = Task X.Error O.Versions
+type alias VersionsInput =
+    String
+
+
+type alias VersionsOutput =
+    Task X.Error O.Versions
+
 
 getVersions : VersionsInput -> VersionsOutput
 getVersions baseUrl =

@@ -21,6 +21,7 @@ getEvent : Versions -> GetEvent.EventInput -> GetEvent.EventOutput
 getEvent =
     GetEvent.getEvent
 
+
 {-| Get all versions that both the homeserver and this SDK support.
 -}
 getVersions : Versions.VersionsInput -> Versions.VersionsOutput

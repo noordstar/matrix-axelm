@@ -5,7 +5,6 @@ import Internal.Api.Versions.Convert as C
 import Internal.Api.Versions.Objects as O
 import Internal.Api.Versions.SpecObjects as SO
 import Internal.Values.Exceptions as X
-import Internal.Values.SpecEnums as Enums
 import Json.Decode as D
 import Task exposing (Task)
 

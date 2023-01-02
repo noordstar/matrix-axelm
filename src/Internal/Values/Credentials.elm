@@ -47,6 +47,7 @@ defaultCredentials =
             |> List.reverse
     }
 
+
 type alias CredentialsSettings =
     { deviceName : String
     , syncTimeout : Int
@@ -99,6 +100,7 @@ getRoomById : String -> Credentials -> Maybe Room
 getRoomById roomId (Credentials cred) =
     Dict.get roomId cred.rooms
 
+
 {-| Update device name
 -}
 loginAsDeviceName : String -> Credentials -> Credentials
@@ -107,4 +109,3 @@ loginAsDeviceName deviceName (Credentials cred) =
         |> (\x -> { x | deviceName = deviceName })
         |> (\x -> { cred | settings = x })
         |> Credentials
-
