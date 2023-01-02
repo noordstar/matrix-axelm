@@ -130,3 +130,8 @@ getRooms (Credentials cred) =
 getRoomById : String -> Credentials -> Maybe Room
 getRoomById roomId (Credentials cred) =
     Dict.get roomId cred.rooms
+
+
+mostRecentSync : Credentials -> List Event
+mostRecentSync (Credentials cred) =
+    cred.mostRecentSync

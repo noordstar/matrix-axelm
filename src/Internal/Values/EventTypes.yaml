@@ -1,0 +1,15 @@
+version: v1
+name: EventTypes
+objects:
+  m.room.name:
+    description: The room name is a human-friendly string designed to be displayed to the end-user.
+    fields:
+      name:
+        type: string
+        required: true
+  m.room.topic:
+    description: A topic is a short message detailing what is currently being discussed in the room. It can also be used as a way to display extra information about the room, which may not be suitable for the room name.
+    fields:
+      topic:
+        type: string
+        required: true

@@ -2,6 +2,11 @@ module Internal.Event exposing (..)
 
 import Internal.Api.Sync.V1_5.Objects as O
 import Internal.Values.Event as Event exposing (Event(..))
+import Json.Decode as D
+
+
+
+{- TURN INTO EVENT -}
 
 
 fromClientEventWithoutRoomId : String -> O.ClientEventWithoutRoomId -> Event

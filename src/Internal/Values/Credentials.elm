@@ -21,6 +21,7 @@ type alias CredentialsRecord =
     , leftRooms : Dict.Dict String ()
     , presence : List O.BlindEvent
     , rooms : Dict.Dict String Room
+    , settings : CredentialsSettings
     , supportedVersions : List String
     }
 
@@ -37,7 +38,18 @@ defaultCredentials =
     , nextBatch = Nothing
     , presence = []
     , rooms = Dict.empty
-    , supportedVersions = [ "v1.1", "v1.2", "v1.3", "v1.4", "v1.5" ]
+    , settings =
+        { deviceName = "Elm SDK"
+        , syncTimeout = 30000
+        }
+    , supportedVersions =
+        [ "v1.1", "v1.2", "v1.3", "v1.4", "v1.5" ]
+            |> List.reverse
+    }
+
+type alias CredentialsSettings =
+    { deviceName : String
+    , syncTimeout : Int
     }
 
 
@@ -86,3 +98,13 @@ mostRecentSync (Credentials cred) =
 getRoomById : String -> Credentials -> Maybe Room
 getRoomById roomId (Credentials cred) =
     Dict.get roomId cred.rooms
+
+{-| Update device name
+-}
+loginAsDeviceName : String -> Credentials -> Credentials
+loginAsDeviceName deviceName (Credentials cred) =
+    cred.settings
+        |> (\x -> { x | deviceName = deviceName })
+        |> (\x -> { cred | settings = x })
+        |> Credentials
+

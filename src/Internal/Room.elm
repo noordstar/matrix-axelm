@@ -4,8 +4,81 @@ import Dict
 import Internal.Api.Sync.V1_5.Objects as O
 import Internal.Event as Event
 import Internal.Values.Event as Event exposing (Event(..))
+import Internal.Values.EventTypes as Types
 import Internal.Values.Room as Room exposing (Room(..))
 import Internal.Values.StateManager as S
+
+
+getRoomId : Room -> String
+getRoomId (Room room) =
+    room.roomId
+
+
+getRoomName : Room -> Maybe String
+getRoomName =
+    getRoomState
+        >> S.getStateEvent "m.room.name" ""
+        >> Maybe.andThen (Event.decodeContentWith Types.mRoomNameDecoder)
+        >> Maybe.map .name
+
+
+
+{- VALUES FOR GETTING THE ROOM STATE -}
+
+
+getRoomState : Room -> S.StateEventManager
+getRoomState (Room room) =
+    room.timeline
+        |> List.filterMap
+            (\piece ->
+                case piece of
+                    Room.TimelineEvent eventId ->
+                        Dict.get eventId room.events
+
+                    _ ->
+                        Nothing
+            )
+        |> S.toRoomState
+
+
+getRoomStateBeforeEvent : Room -> Event -> S.StateEventManager
+getRoomStateBeforeEvent (Room room) (Event event) =
+    let
+        stopAt : Maybe String -> List Event -> List Event
+        stopAt v events =
+            case events of
+                [] ->
+                    []
+
+                (Event ev) :: tail ->
+                    if ev.eventId == v then
+                        []
+
+                    else
+                        Event event :: stopAt v tail
+    in
+    room.timeline
+        |> List.filterMap
+            (\piece ->
+                case piece of
+                    Room.TimelineEvent eventId ->
+                        Dict.get eventId room.events
+
+                    _ ->
+                        Nothing
+            )
+        |> stopAt event.eventId
+        |> S.toRoomState
+
+
+getStateKey : Room -> String -> String -> Maybe Event
+getStateKey room eventType stateKey =
+    getRoomState room
+        |> Dict.get ( eventType, stateKey )
+
+
+
+{- VALUES FOR SYNCING AND MAINTAINING ROOMS -}
 
 
 updateRoomWithSync : String -> ( String, O.JoinedRoom ) -> Maybe Room -> Room
