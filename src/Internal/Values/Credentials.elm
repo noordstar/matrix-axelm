@@ -22,7 +22,7 @@ type alias CredentialsRecord =
     , presence : List O.BlindEvent
     , rooms : Dict.Dict String Room
     , settings : CredentialsSettings
-    , supportedVersions : List String
+    , supportedVersions : Maybe (List String)
     }
 
 
@@ -45,6 +45,7 @@ defaultCredentials =
     , supportedVersions =
         [ "v1.1", "v1.2", "v1.3", "v1.4", "v1.5" ]
             |> List.reverse
+            |> Just
     }
 
 

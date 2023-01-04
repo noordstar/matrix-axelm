@@ -23,3 +23,15 @@ type TimelinePiece
     | TimelineEvent String
     | Gap { from : String, to : String }
     | BatchBorder { sinceParam : String, deltaState : List Ev.Event }
+
+{-| Get a locally cached event.
+-}
+getEvent : String -> Room -> Maybe Ev.Event
+getEvent eventId (Room room) =
+    Dict.get eventId room.events
+
+{-| Add an event to the dict of events
+-}
+addEvent : String -> Ev.Event -> Room -> Room
+addEvent eventId event (Room room) =
+    Room { room | events = Dict.insert eventId event room.events }
